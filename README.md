@@ -491,9 +491,29 @@ make install          # pip install -e ".[dev]"
 make all              # format-all + lint + typecheck + test (ship bar)
 
 # Frontend (separate terminal)
-make dev-frontend     # Vite dev server on :5173 (override with VITE_DEV_PORT)
+make dev-frontend     # Vite dev server on :5173 (hot reload)
 make build-frontend   # production build → src/octop/dashboard/
 cd dashboard && npx tsc -b
+```
+
+**Startup order (avoids 404s):** `octop run` only serves the console static
+files after `src/octop/dashboard/` has been built. If the backend root (or the
+desktop shell loading the backend URL) returns 404 for `/` or `/sw.js`, run
+`make build-frontend` first. Use Vite on `:5173` while iterating on UI (it
+proxies API calls to `:8088`); use the built bundle for the desktop shell or
+plain backend access.
+
+**Desktop client development** (Wails v3 — see [desktop/README.md](desktop/README.md)):
+
+```bash
+# Prerequisites: Go 1.25+, plus
+go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-beta.13
+export PATH="$(go env GOPATH)/bin:$PATH"
+
+make build-frontend              # required first — otherwise 404 in the shell
+desktop/package-dev.sh           # starts Octop + desktop shell (recommended)
+# Or, if a backend is already running:
+cd desktop/src && OCTOP_DESKTOP_URL=http://127.0.0.1:8088 wails3 dev
 ```
 
 Individual targets: `make test`, `make lint`, `make typecheck`, `make format`.

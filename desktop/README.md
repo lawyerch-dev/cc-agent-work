@@ -47,6 +47,32 @@ matrix on macOS, Linux, and Windows runners rather than cross-compiled locally.
 Windows packaging also needs [NSIS](https://nsis.sourceforge.io/) (`makensis`)
 so the `.exe` is an installer rather than a portable single-file binary.
 
+## Local development
+
+**This is the desktop GUI shell** (`desktop/src`, Wails v3). Do not confuse it
+with `src/octop/infra/desktop/` (remote-desktop streaming) or
+`src/octop/api/routers/desktop/` (its HTTP surface).
+
+Two ways to run against local source:
+
+```bash
+# 1) Recommended — starts Octop + the shell, tears both down on exit
+make build-frontend          # required: ship SPA into src/octop/dashboard/
+desktop/package-dev.sh
+
+# 2) Against an already-running backend
+cd desktop/src
+OCTOP_DESKTOP_URL=http://127.0.0.1:8088 wails3 dev
+```
+
+Without `make build-frontend`, the backend returns 404 for `/` and `/sw.js` and
+the desktop window shows a failed-resource error. See the root README
+«Development» section for the full startup order.
+
+Toolchain: **Go 1.25+** and
+`go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-beta.13`
+(then put `$(go env GOPATH)/bin` on `PATH`).
+
 ## Build the Wails shell
 
 Run these from **`desktop/src`** (that directory contains `Taskfile.yml` and
@@ -62,12 +88,8 @@ wails3 task package ARCH=arm64 VERSION=<version> \
   PORTABLE_ZIP=../portable/release/Octop-portable-darwin-arm64-<version>.zip
 ```
 
-Dev against an already-running Octop (skips the bundled green zip):
-
-```bash
-cd desktop/src
-OCTOP_DESKTOP_URL=http://127.0.0.1:8088 wails3 dev
-```
+Dev against an already-running Octop is covered under
+[Local development](#local-development) above (`OCTOP_DESKTOP_URL=… wails3 dev`).
 
 Without `OCTOP_DESKTOP_URL`, first launch uses `~/.octop/portable/` if valid,
 otherwise extracts the matching zip shipped with the desktop package (embedded

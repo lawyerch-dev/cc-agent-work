@@ -484,9 +484,24 @@ make install          # pip install -e ".[dev]"
 make all              # format-all + lint + typecheck + test（发布门槛）
 
 # 前端（另开终端）
-make dev-frontend     # Vite 开发服务器 :5173
+make dev-frontend     # Vite 开发服务器 :5173（改代码热更新）
 make build-frontend   # 生产构建 → src/octop/dashboard/
 cd dashboard && npx tsc -b
+```
+
+**启动顺序（避免 404）：** `octop run` 只在 `src/octop/dashboard/` 已构建时才提供控制台静态资源。若直接访问后端根路径（或桌面壳加载后端地址）看到 `/`、`/sw.js` 返回 404，先执行 `make build-frontend` 再启动。开发 UI 时可用 Vite（`:5173`，自动代理 API 到 `:8088`）；桌面壳 / 纯后端访问请走构建产物。
+
+**桌面客户端开发**（Wails v3，详见 [desktop/README.md](desktop/README.md)）：
+
+```bash
+# 前置：Go 1.25+，以及
+go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-beta.13
+export PATH="$(go env GOPATH)/bin:$PATH"
+
+make build-frontend              # 必须先构建，否则桌面壳内 404
+desktop/package-dev.sh           # 起 Octop + 桌面壳（推荐）
+# 或：已有后端时
+cd desktop/src && OCTOP_DESKTOP_URL=http://127.0.0.1:8088 wails3 dev
 ```
 
 单独执行：`make test`、`make lint`、`make typecheck`、`make format`。

@@ -194,7 +194,15 @@ uv run pytest tests/unit -x -q        # unit tests only, stop on first fail
 uv run pytest tests/integration -x -q # integration tests only
 cd dashboard && npx tsc -b             # frontend typecheck (after UI changes)
 make build-frontend                     # dashboard/ → src/octop/dashboard/
+desktop/package-dev.sh                  # desktop GUI shell (needs Go 1.25+ / wails3)
 ```
+
+**Desktop GUI vs remote desktop:** `desktop/` is the Wails v3 native shell that
+loads the console in a window (dev entry: `desktop/package-dev.sh`). It is not
+`src/octop/infra/desktop/` (remote-desktop streaming) or
+`src/octop/api/routers/desktop/` (that feature's HTTP surface). The shell reads
+the built SPA from the backend URL — run `make build-frontend` first or the
+window hits 404 on `/` and `/sw.js`.
 
 **Git hooks (required for local commits):** after cloning, run **`make install-hooks`** once. That sets `core.hooksPath=.githooks` so every `git commit` runs **`make all`** (which first runs **`format-all`**: backend Ruff + dashboard Prettier write, then lint / typecheck / test) and dashboard **`npm run build`**. Formatted files that were already staged are re-added so the commit includes the formatted content. Bypass only in emergencies: `SKIP_PRECOMMIT=1 git commit …` or `git commit --no-verify`. Do **not** skip hooks to land red tests — fix the suite first (CI runs on Linux **and** Windows).
 
