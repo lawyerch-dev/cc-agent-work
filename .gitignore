@@ -102,5 +102,8 @@ scripts/dev-local-link.sh
 
 # Local agent planning docs (not for upstream)
 docs/superpowers/
+
+# Local agent tooling / plugin-installed skills (not project source)
+.claude/
 scripts/lh_image_install_octop_tencentos.sh
 .worktrees/
