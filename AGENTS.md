@@ -61,13 +61,18 @@ Octop (`octop/` workspace directory)     Python package root (`src/octop/`)
   config.py
   launch.py                   composition root: OctopServer + FastAPI + uvicorn
   i18n/                       locale JSON bundles + tr() + domain helpers
-  infra/                      domain core (agents, DB, gateway, …)
+  infra/                      domain core (agents, DB, gateway, knowledge, …)
   api/                        HTTP adapters (FastAPI)
-  cli/                        Click commands
+  cli/                        Click commands (`commands/`, `repl/`, `support/`)
   dashboard/                  built SPA artifact — do NOT edit
 
 dashboard/                    frontend source (Vite) — edit here
-docs/                         human-written reference (e.g. `api.md`)
+desktop/                      Wails v3 native GUI shell (not remote-desktop)
+docs/                         human-written reference (`api.md`, `architecture.md`, …)
+                              + published docs site (`index.html`, `guide/`, `css/`, `js/`)
+plugins/                      sample plugin demos (tool / skill / hook / ui-card)
+fnos/                         FnOS packaging (docker + native)
+scripts/                      release and utility scripts
 tests/                        pytest (`unit/`, `integration/`)
 ```
 
@@ -107,14 +112,25 @@ cli/ ──► launch.py ──► api/ + infra/
 
 | Path | Owns | Typical importers |
 |------|------|-------------------|
-| `infra/agents/` | Agent registry (`manager.py`), harness runtime, provider store (`providers/`), settings stores (`security/`, `acp_settings`, `langfuse`), MBTI personas, expert catalog (`experts/`) | `server.py`, `gateway/`, `api/routers/agents.py` |
+| `infra/agents/` | Agent registry (`manager.py` — start/stop/reload), harness runtime, provider store (`providers/`), settings stores (`security/`, `acp_settings`, `langfuse`), MBTI personas, expert catalog (`experts/`), expert teams (`teams/`), plugins (`plugins/`), subagents, builtin skills, middleware | `server.py`, `gateway/`, `api/routers/agents.py`, `teams.py`, `experts.py` |
+| `infra/auth/` | Auth domain helpers: captcha, SSO/OIDC (discovery, PKCE, id_token, redirect) | `api/routers/auth*.py`, `infra/users/` |
 | `infra/backend/` | Workspace storage adapter, resolver, remote probe (COS/S3/…) | `agents/`, `api/routers/workspace*.py` |
-| `infra/connectors/` | Connector catalog, OAuth, MCP gateway, credential crypto | `api/routers/connectors.py`, `internal_mcp.py`, `agents/manager.py` (MCP assembly) |
-| `infra/cron/` | Cron jobs, triggers, agent tool hooks | `server.py`, `api/routers/cron.py` |
+| `infra/backup/` | System/workspace backup & restore, auto-backup, chat export, manifests | `api/routers/backup.py`, `cli/commands/backup.py` |
+| `infra/browser/` | Browser env setup (Playwright/Chrome install, profile prep) | `api/routers/browser/`, `agents/` |
+| `infra/connectors/` | Connector catalog, OAuth, MCP gateway, credential crypto, QCC/mail helpers | `api/routers/connectors.py`, `internal_mcp.py`, `agents/manager.py` (MCP assembly) |
+| `infra/cron/` | Cron jobs, triggers, agent tool hooks, delivery | `server.py`, `api/routers/cron.py` |
 | `infra/db/` | `SqlitePool`, migrations, `RepoBundle` / `SharedServices` in `services.py` | all domain code needing persistence |
-| `infra/gateway/` | IM ingress (`processor.py`), threads, slash commands (`slash/`), bot setup (`bot_creators/`) | `server.py`, `api/routers/chat.py`, `channels.py` |
-| `infra/setup/` | First-run wizard, system service install, TLS / Let's Encrypt | `server.py`, `launch.py`, `api/routers/setup.py`, `api/routers/tls.py` |
-| `infra/users/` | Users, roles, password hashing, `UserManager` | `server.py`, `api/routers/auth.py`, `users.py` |
+| `infra/desktop/` | Remote-desktop domain helpers (session, capture, input, setup) | `api/routers/desktop/` |
+| `infra/gateway/` | IM ingress (`process/processor.py`), threads, slash commands (`slash/`), bot setup (`bot_creators/`), channels, HITL, media, WS | `server.py`, `api/routers/chat.py`, `channels.py` |
+| `infra/history/` | Versioned conversation history & trajectory events (`history_v2`); legacy data not migrated on read | `gateway/process/`, `api/routers/chat/`, `api/routers/memory.py` |
+| `infra/knowledge/` | Knowledge-base domain: parse/chunk/embed/index/retrieve, OCR, citations, jobs | `api/routers/knowledge_bases.py`, agent tools |
+| `infra/mobile/` | Remote Android (adb, probe, setup, agent control, H.264) | `api/routers/mobile/` |
+| `infra/proactive/` | Proactive care: episode picker, scheduler, service | `api/routers/proactive_care.py` |
+| `infra/providers/` | External provider OAuth apply (e.g. Codex device-code) into the provider store | `api/routers/providers.py`, `cli/commands/provider.py` |
+| `infra/setup/` | First-run wizard, system service install, TLS / Let's Encrypt, self-update | `server.py`, `launch.py`, `api/routers/setup.py`, `api/routers/tls.py` |
+| `infra/skills/` | Skill packages, SkillHub market, URL import, workspace catalog, transfer | `api/routers/skills.py`, `api/routers/skill_packages.py`, `cli/commands/skills.py` |
+| `infra/users/` | Users, roles, password hashing, invites, permissions, preferences, `UserManager` | `server.py`, `api/routers/auth.py`, `users.py` |
+| `infra/voice/` | Voice STT/TTS provider orchestration and presets | `api/routers/voice.py` |
 | `infra/errors.py` | `OctopError`, `ErrorCode` — shared exception types | everywhere in `infra/` and `api/` |
 | `infra/metrics.py` | In-process counters (`METRICS`) | lazy-import inside hot paths |
 | `infra/server.py` | `OctopServer.start()` — wires infra singletons | `launch.py`, `api/app.py` |
@@ -144,15 +160,18 @@ Only `launch.py` may import both `infra/server` and `api/app` in the same module
 | Path | Owns |
 |------|------|
 | `cli/main.py` | Click entry, command registration |
-| `cli/*_cmd.py` | User-facing subcommands |
+| `cli/registry.py` | Command registry / wiring |
+| `cli/commands/*` | User-facing subcommands (`run`, `init`, `agent`, `chats`, `backup`, `skills`, `plugin`, `memory`, …) |
+| `cli/repl/` | Interactive chat REPL (session, turn, render, toolbar) |
 | `cli/support/db.py` | Offline DB (`open_cli_services`) |
 | `cli/support/offline_ops.py` | Local CRUD via repos (thin wrappers) |
 | `cli/support/embedded_ops.py` | Short-lived `OctopServer` for runtime ops |
 | `cli/support/acting.py` | Resolve `--user` / pinned defaults / agent owner |
 | `cli/support/ctx.py` | Root `--user` / `--agent` / `--json` resolution |
 | `cli/support/state.py` | Pinned `default_user` / `default_agent` in `cli_state.json` |
-| `cli/run_cmd.py` | `octop run` — delegates to `launch.run_foreground_blocking` |
-| `cli/init_cmd.py`, `cli/backup_cmd.py` | Local DB bootstrap / backup via `infra/db` |
+| `cli/support/` (other) | `errors`, `prompts`, `qr`, `skills`, `feishu_creator`, `stub` — shared CLI helpers |
+| `cli/commands/run.py` | `octop run` — delegates to `launch.run_foreground_blocking` |
+| `cli/commands/init.py`, `cli/commands/backup.py` | Local DB bootstrap / backup via `infra/db` |
 
 **CLI transport layers** (pick one per command; domain rules live in `infra/`, not duplicated in `cli/`):
 
@@ -228,7 +247,7 @@ New agents additionally keep system-scoped files under `{workspace}/.octop/` (e.
 
 **Database:** SQLite and PostgreSQL share one schema. Add or change tables via a numbered pair
 `infra/db/migrations/00N_description.sql` **and** `00N_description.pg.sql`, then bump the
-version assertion in `tests/unit/db/test_db_pool.py` (currently `v == 7`). Rebuilds that SQLite
+version assertion in `tests/unit/db/test_db_pool.py` (currently `v == 17`). Rebuilds that SQLite
 cannot express as `ALTER` live in `infra/db/migrate.py` helpers and must stay idempotent.
 
 Unreleased schema work on `develop` **folds into the current unreleased `00N`**, not a new
@@ -349,7 +368,7 @@ Boundary rules are in [§5](#5-module-boundaries). Additionally:
   - `octop.utils.*` → `octop.infra.utils.*` (or `octop.infra.metrics` for metrics)
   - `octop.errors` / `octop.server` / `octop.shared` → `octop.infra.errors` / `octop.infra.server` / `octop.infra.db.services`
 - Do not import `api/` from `infra/` or `cli/` — use `launch.py` to wire HTTP serving.
-- Do not put domain logic in `api/routers/` or `cli/*_cmd.py` when it belongs in `infra/`.
+- Do not put domain logic in `api/routers/` or `cli/commands/` when it belongs in `infra/`.
 - Do not import `infra/db/repos/*` from routers — use `server.services.*_repo` via `infra/` services or managers.
 - Do not write bare `pytest` — always `uv run pytest`.
 - Do not edit `src/octop/dashboard/` directly — build artifact; source is `dashboard/`.
@@ -362,9 +381,9 @@ Boundary rules are in [§5](#5-module-boundaries). Additionally:
 | How does auth work? | `api/deps.py`, `api/middleware/jwt_auth.py`, `api/routers/auth.py` |
 | Setup wizard (password file, tokens) | `infra/setup/`, `api/routers/setup.py` |
 | TLS / Let's Encrypt | `infra/setup/tls/`, `api/routers/tls.py` |
-| `octop run` boot sequence | `launch.py`, `cli/run_cmd.py` |
-| How is a message processed? | `infra/gateway/processor.py` → harness agent |
-| How are agents started/stopped? | `infra/agents/manager.py`, `infra/agents/runtime.py` |
+| `octop run` boot sequence | `launch.py`, `cli/commands/run.py` |
+| How is a message processed? | `infra/gateway/process/processor.py` → harness agent |
+| How are agents started/stopped? | `infra/agents/manager.py` (`_start_agent` / `_post_start_agent`) |
 | How does cron work? | `infra/cron/manager.py`, `infra/cron/job.py` |
 | What DB tables exist? | `infra/db/migrations/` + `infra/db/repos/` |
 | What env vars are supported? | `config.py` |
@@ -377,6 +396,14 @@ Boundary rules are in [§5](#5-module-boundaries). Additionally:
 | What is a Thread? | `infra/gateway/threads.py`, `infra/db/repos/threads.py` |
 | Workspace backend resolution | `infra/backend/resolver.py`, `infra/backend/adapter.py` |
 | Connectors & OAuth | `infra/connectors/`, `api/routers/connectors.py` |
+| Knowledge bases (RAG) | `infra/knowledge/`, `api/routers/knowledge_bases.py` |
+| Skills / SkillHub packages | `infra/skills/`, `api/routers/skills.py`, `api/routers/skill_packages.py` |
+| Expert teams | `infra/agents/teams/`, `api/routers/teams.py` |
+| Versioned history / trajectory | `infra/history/`, `docs/versioned-history.md` |
+| Backup & restore | `infra/backup/`, `api/routers/backup.py`, `cli/commands/backup.py` |
+| Voice STT/TTS | `infra/voice/`, `api/routers/voice.py` |
+| Plugin demos & contract | `plugins/README.md`; bundled product plugins in `infra/agents/plugins/bundled/` |
+| Desktop GUI shell vs remote desktop | `desktop/` (Wails shell) vs `infra/desktop/` + `api/routers/desktop/` |
 | OpenAPI tags and API intro | `api/openapi_meta.py` |
 | Human-readable API reference | `docs/api.md` |
 | SharedServices / RepoBundle | `infra/db/services.py` |
