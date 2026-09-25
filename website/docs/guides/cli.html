@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CLI · Octop 文档</title>
+<link rel="icon" href="../../assets/favicon.ico">
+<link rel="icon" type="image/svg+xml" href="../../assets/favicon.svg">
+<link rel="stylesheet" href="../../css/docs.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <a class="brand" href="../../index.html">
+      <img src="../../assets/favicon.svg" alt="Octop">
+      <span>Octop</span>
+      <span class="tag">Docs</span>
+    </a>
+    <nav>
+      <a href="../../index.html">落地页</a>
+      <a class="on" href="../">文档</a>
+      <a href="https://github.com/TencentCloud/Octop" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+  </div>
+</header>
+<div class="layout">
+  <aside class="side">
+    <h5>开始</h5>
+    <a href="../">总览</a>
+    <a href="../getting-started.html">快速上手</a>
+    <a href="../architecture.html">架构总览</a>
+    <h5>指南</h5>
+    <a href="configuration.html">配置</a>
+    <a class="on" href="cli.html">CLI</a>
+    <a href="api.html">HTTP API</a>
+    <h5>深入</h5>
+    <a href="memory.html">记忆与工作区</a>
+    <a href="connectors.html">Connectors</a>
+    <a href="https://github.com/TencentCloud/Octop/tree/main/docs" target="_blank" rel="noopener">完整文档源</a>
+  </aside>
+  <main class="main">
+    <div class="kicker">CLI</div>
+    <h1>CLI</h1>
+    <p class="lede">octop 命令行入口：init / run / user / agent / chats / cron 等。细节见 docs/cli.md。</p>
+    <pre><span class="c-cmd">octop</span> init
+<span class="c-cmd">octop</span> run
+<span class="c-cmd">octop</span> agent list
+<span class="c-cmd">octop</span> chats send "hello"</pre><div class="note">CLI 信任本地文件系统访问 <code class="inline">~/.octop</code>，无需 login。可用 <code class="inline">--user</code> / <code class="inline">--agent</code> 固定操作身份。</div>
+  </main>
+</div>
+<footer class="footer">
+  <div class="in">
+    <span>腾讯开源 · MIT License</span>
+    <a href="https://github.com/TencentCloud/Octop" target="_blank" rel="noopener">github.com/TencentCloud/Octop</a>
+  </div>
+</footer>
+</body>
+</html>
