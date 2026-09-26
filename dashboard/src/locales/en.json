@@ -804,6 +804,7 @@
       "emptyGuideStepChatDetail": "Open the team from the sidebar. The Lead schedules; members speak in the same room.",
       "emptyMembersHint": "You can create the team first and add members later.",
       "membersRecommend": "At least 2 members are recommended.",
+      "pendingMembers": "Add members",
       "templates": "Team templates",
       "seedDefaults": "Add default teams",
       "templateCreated": "Team created from template",

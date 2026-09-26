@@ -262,31 +262,39 @@ export const TeamCard = memo(function TeamCard({
           <span className={styles.teamCardRosterLabel}>
             {t("experts.teams.memberAvatars")}
           </span>
-          {visibleMembers.map((member) => (
-            <Tooltip key={member.id} title={member.name}>
-              <div
-                className={styles.teamMemberAvatar}
-                style={{
-                  color: member.color,
-                  background: `${member.color}1a`,
-                }}
-              >
-                {member.iconUrl || member.iconName ? (
-                  <ExpertIcon
-                    iconUrl={member.iconUrl}
-                    iconName={member.iconName}
-                    size={member.iconUrl ? 22 : 13}
-                  />
-                ) : (
-                  member.name.slice(0, 1)
-                )}
-              </div>
-            </Tooltip>
-          ))}
-          {hiddenCount > 0 && (
-            <span className={styles.teamMemberMore}>
-              {t("experts.teams.memberMore", { count: hiddenCount })}
+          {members.length === 0 ? (
+            <span className={styles.teamCardBadge}>
+              {t("experts.teams.pendingMembers")}
             </span>
+          ) : (
+            <>
+              {visibleMembers.map((member) => (
+                <Tooltip key={member.id} title={member.name}>
+                  <div
+                    className={styles.teamMemberAvatar}
+                    style={{
+                      color: member.color,
+                      background: `${member.color}1a`,
+                    }}
+                  >
+                    {member.iconUrl || member.iconName ? (
+                      <ExpertIcon
+                        iconUrl={member.iconUrl}
+                        iconName={member.iconName}
+                        size={member.iconUrl ? 22 : 13}
+                      />
+                    ) : (
+                      member.name.slice(0, 1)
+                    )}
+                  </div>
+                </Tooltip>
+              ))}
+              {hiddenCount > 0 && (
+                <span className={styles.teamMemberMore}>
+                  {t("experts.teams.memberMore", { count: hiddenCount })}
+                </span>
+              )}
+            </>
           )}
         </div>
 

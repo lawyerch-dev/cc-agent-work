@@ -804,6 +804,7 @@
       "emptyGuideStepChatDetail": "从侧栏进入团队聊天。主管负责调度，成员气泡会出现在同一房间。",
       "emptyMembersHint": "可先创建团队，稍后再添加成员。",
       "membersRecommend": "建议至少 2 名成员。",
+      "pendingMembers": "待添加成员",
       "templates": "团队模板",
       "seedDefaults": "补齐默认团队",
       "templateCreated": "已从模板创建团队",
