@@ -17,7 +17,9 @@ from octop.infra.agents.teams import (
     is_team_agent,
     team_icon_url,
 )
+from octop.infra.agents.teams.bootstrap import bootstrap_default_teams, create_team_from_template
 from octop.infra.errors import ErrorCode, OctopError
+from octop.infra.utils.locale import normalize_locale
 
 router = APIRouter()
 
@@ -64,6 +66,75 @@ async def list_teams(
     server: Any = Depends(get_server),
 ) -> list[dict[str, Any]]:
     return cast(list[dict[str, Any]], _teams(server).list_for_user(user.id))
+
+
+@router.get("/team-templates", summary="List bundled department team templates")
+async def list_team_templates(
+    user: Any = Depends(current_user),
+    server: Any = Depends(get_server),
+) -> list[dict[str, Any]]:
+    catalog = getattr(server, "team_catalog", None)
+    if catalog is None:
+        return []
+    loc = normalize_locale(getattr(user, "locale", None))
+    return [
+        {
+            "id": summary.id,
+            "label": summary.label,
+            "description": summary.description,
+            "icon": summary.icon,
+            "color": summary.color,
+            "suggested_roles": [
+                {"name": role.name, "description": role.description}
+                for role in summary.suggested_roles
+            ],
+        }
+        for summary in catalog.list_summaries(loc)
+    ]
+
+
+@router.post("/teams/from-template/{template_id}", summary="Create a team from a template")
+async def create_team_from_template_endpoint(
+    template_id: str,
+    user: Any = Depends(current_user),
+    server: Any = Depends(get_server),
+) -> dict[str, Any]:
+    catalog = getattr(server, "team_catalog", None)
+    if catalog is None or catalog.get(template_id) is None:
+        raise OctopError(
+            ErrorCode.TEAM_TEMPLATE_NOT_FOUND,
+            f"team template {template_id!r} not found",
+        )
+    assert server.app_runtime is not None
+    row = await create_team_from_template(
+        server.app_runtime.agent_registry,
+        catalog,
+        user_id=user.id,
+        locale=getattr(user, "locale", None),
+        template_id=template_id,
+    )
+    registry = server.app_runtime.agent_registry
+    return cast(
+        dict[str, Any],
+        _teams(server).team_payload(registry.get_row(row.agent_id) or row),
+    )
+
+
+@router.post("/teams/seed-defaults", summary="Backfill missing default teams")
+async def seed_default_teams(
+    user: Any = Depends(current_user),
+    server: Any = Depends(get_server),
+) -> list[dict[str, Any]]:
+    assert server.app_runtime is not None
+    return cast(
+        list[dict[str, Any]],
+        await bootstrap_default_teams(
+            server.app_runtime.agent_registry,
+            getattr(server, "team_catalog", None),
+            user_id=user.id,
+            locale=getattr(user, "locale", None),
+        ),
+    )
 
 
 @router.post("/teams", summary="Create an expert team")
