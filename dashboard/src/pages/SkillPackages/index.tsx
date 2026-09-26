@@ -418,15 +418,6 @@ export default function SkillPackagesPage() {
   const openEditSkill = async (packageId: string, slug: string) => {
     try {
       const detail = await skillPackagesApi.getSkill(packageId, slug);
-      if (detail.package_id && detail.package_id !== selectedId) {
-        const pkg = await skillPackagesApi
-          .get(detail.package_id)
-          .catch(() => null);
-        if (pkg) {
-          setSelected(pkg);
-          setSelectedId(pkg.id);
-        }
-      }
       setEditingSkill(detail);
       skillForm.setFieldsValue({
         name: detail.slug,
