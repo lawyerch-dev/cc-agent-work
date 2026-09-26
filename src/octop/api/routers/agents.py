@@ -198,9 +198,12 @@ def _row_dict(
         registry = getattr(getattr(server, "app_runtime", None), "agent_registry", None)
         teams = getattr(registry, "teams", None)
         if teams is not None:
-            payload["member_ids"] = teams.visible_member_ids(row.agent_id)
+            fields = teams.team_fields(row.agent_id)
+            payload["member_ids"] = fields["member_ids"]
+            payload["team_code"] = fields["team_code"]
         else:
             payload["member_ids"] = []
+            payload["team_code"] = None
     if bootstrap_pending is not None:
         payload["bootstrap_pending"] = bootstrap_pending
     return payload

@@ -54,7 +54,20 @@ import CreateFromExpertDrawer, {
 } from "./components/CreateFromExpertDrawer";
 import TeamDrawer from "./components/TeamDrawer";
 import TeamTemplateDrawer from "./components/TeamTemplateDrawer";
+import TeamOrderDrawer from "./components/TeamOrderDrawer";
+import SortableTeamItem from "./components/SortableTeamItem";
+import { sortTeams } from "./teamOrder";
 import { teamsApi, type TeamRecord } from "../../api/modules/teams";
+import { preferencesApi } from "../../api/modules/preferences";
+import {
+  DndContext,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
 import { TeamCard } from "./components/TeamCard";
 import { PublishedExpertCard } from "./components/PublishedExpertCard";
 import AgentExpertsTable from "./components/AgentExpertsTable";
@@ -211,8 +224,60 @@ export default function ExpertsPage() {
     [localAgents],
   );
   const teamAgents = useMemo(
-    () => localAgents.filter((item) => item.kind === "team"),
+    () =>
+      localAgents
+        .filter((item) => item.kind === "team")
+        .sort((a, b) => (a.id ?? 0) - (b.id ?? 0)),
     [localAgents],
+  );
+
+  const [teamOrder, setTeamOrder] = useState<string[]>([]);
+  const [orderDrawerOpen, setOrderDrawerOpen] = useState(false);
+  const sortedTeamAgents = useMemo(
+    () => sortTeams(teamAgents, teamOrder),
+    [teamAgents, teamOrder],
+  );
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    preferencesApi
+      .get()
+      .then((prefs) => {
+        if (!cancelled) setTeamOrder(prefs.team_order ?? []);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const saveTeamOrder = useCallback(
+    (ids: string[]) => {
+      setTeamOrder(ids);
+      preferencesApi
+        .patch({ team_order: ids })
+        .catch(() => message.error(t("experts.teams.orderSaveFailed")));
+    },
+    [t],
+  );
+
+  const handleTeamDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+      const ids = sortedTeamAgents.map((item) => item.agent_id);
+      const from = ids.indexOf(String(active.id));
+      const to = ids.indexOf(String(over.id));
+      if (from < 0 || to < 0) return;
+      const next = [...ids];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      saveTeamOrder(next);
+    },
+    [sortedTeamAgents, saveTeamOrder],
   );
   const pickableExperts = useMemo(
     () =>
@@ -548,6 +613,15 @@ export default function ExpertsPage() {
           >
             {t("experts.teams.seedDefaults")}
           </button>
+          {teamAgents.length > 1 ? (
+            <button
+              className={styles.toolbarBtn}
+              type="button"
+              onClick={() => setOrderDrawerOpen(true)}
+            >
+              {t("experts.teams.sort")}
+            </button>
+          ) : null}
           <button
             className={styles.toolbarBtn}
             type="button"
@@ -596,31 +670,47 @@ export default function ExpertsPage() {
     return (
       <>
         {teamToolbar}
-        <div className={styles.cardGrid}>
-          {teamAgents.map((agent) => (
-            <div key={agent.agent_id}>
-              <TeamCard
-                agent={agent}
-                experts={pickableExperts}
-                onEdit={(id) => {
-                  const row = teamAgents.find((item) => item.agent_id === id);
-                  if (row) setTeamDrawer({ mode: "edit", team: row });
-                }}
-                onDeleted={handleDeleted}
-                onStateChange={handleStateChange}
-              />
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleTeamDragEnd}
+        >
+          <SortableContext
+            items={sortedTeamAgents.map((item) => item.agent_id)}
+            strategy={rectSortingStrategy}
+          >
+            <div className={styles.cardGrid}>
+              {sortedTeamAgents.map((agent) => (
+                <SortableTeamItem key={agent.agent_id} id={agent.agent_id}>
+                  <TeamCard
+                    agent={agent}
+                    experts={pickableExperts}
+                    onEdit={(id) => {
+                      const row = sortedTeamAgents.find(
+                        (item) => item.agent_id === id,
+                      );
+                      if (row) setTeamDrawer({ mode: "edit", team: row });
+                    }}
+                    onDeleted={handleDeleted}
+                    onStateChange={handleStateChange}
+                  />
+                </SortableTeamItem>
+              ))}
             </div>
-          ))}
-        </div>
+          </SortableContext>
+        </DndContext>
       </>
     );
   }, [
     handleDeleted,
     handleSeedDefaults,
     handleStateChange,
+    handleTeamDragEnd,
     isMobile,
     pickableExperts,
     refreshButton,
+    sensors,
+    sortedTeamAgents,
     t,
     teamAgents,
   ]);
@@ -794,6 +884,13 @@ export default function ExpertsPage() {
         lang={lang}
         onClose={() => setCreateSource(null)}
         onCreated={handleCreated}
+      />
+
+      <TeamOrderDrawer
+        open={orderDrawerOpen}
+        teams={sortedTeamAgents}
+        onClose={() => setOrderDrawerOpen(false)}
+        onSave={saveTeamOrder}
       />
 
       <TeamTemplateDrawer

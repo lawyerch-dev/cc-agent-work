@@ -33,6 +33,8 @@ import {
   isAgentModelConfigError,
 } from "../../../utils/agentError";
 import { TEAM_ICON_NAME, teamPortraitUrl } from "../../../utils/teamAgent";
+import { copyText } from "../../../utils/copyText";
+import { teamCodeNumber } from "../teamOrder";
 import styles from "../index.module.less";
 
 const STATE_META: Record<
@@ -115,6 +117,7 @@ export const TeamCard = memo(function TeamCard({
   );
   const visibleMembers = members.slice(0, MAX_VISIBLE_MEMBERS);
   const hiddenCount = Math.max(0, members.length - visibleMembers.length);
+  const ordinal = teamCodeNumber(agent.team_code);
 
   useEffect(() => {
     setLocalState(agent.state);
@@ -210,9 +213,19 @@ export const TeamCard = memo(function TeamCard({
     navigate(`/chat/${agent.agent_id}`);
   }, [agent.agent_id, setActiveAgent, navigate]);
 
+  const handleCopyId = useCallback(async () => {
+    const code = agent.team_code ?? agent.agent_id;
+    const ok = await copyText(code);
+    if (ok) message.success(t("common.copied"));
+    else message.error(t("common.copyFailed"));
+  }, [agent.team_code, agent.agent_id, t]);
+
   return (
     <>
       <div className={`${styles.agentCard2} ${styles.teamCard}`}>
+        {ordinal ? (
+          <span className={styles.teamCardOrdinal}>{ordinal}</span>
+        ) : null}
         <div className={styles.agentCard2Header}>
           <div className={`${styles.agentCard2Icon} ${styles.teamCardIcon}`}>
             <ExpertIcon
@@ -229,6 +242,17 @@ export const TeamCard = memo(function TeamCard({
                 <Users size={10} strokeWidth={2.4} aria-hidden />
                 {t("chat.teamBadge")}
               </span>
+              {agent.team_code ? (
+                <Tooltip title={t("experts.copyTeamId", "复制团队 ID")}>
+                  <button
+                    type="button"
+                    className={styles.teamCardId}
+                    onClick={() => void handleCopyId()}
+                  >
+                    {agent.team_code}
+                  </button>
+                </Tooltip>
+              ) : null}
               <Tooltip title={formatAgentState(localState, t)}>
                 <span
                   className={

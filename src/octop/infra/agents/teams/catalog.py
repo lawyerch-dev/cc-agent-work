@@ -12,6 +12,15 @@ from octop.infra.utils.locale import DEFAULT_LOCALE, Locale, normalize_locale
 
 logger = logging.getLogger(__name__)
 
+# Department order for the default team set (人财物: 管理/人/财/业务/物).
+DEFAULT_TEMPLATE_ORDER: tuple[str, ...] = (
+    "general-office",
+    "hr-admin",
+    "finance",
+    "sales",
+    "operations",
+)
+
 
 @dataclass(frozen=True)
 class TeamTemplateRole:
@@ -135,6 +144,14 @@ class TeamCatalog:
 
     def list_summaries(self, locale: Locale | str) -> list[TeamTemplateSummary]:
         return [tpl.summary(locale) for tpl in self._templates.values()]
+
+    def ordered_summaries(self, locale: Locale | str) -> list[TeamTemplateSummary]:
+        """Summaries in the canonical department order (unknown ids last)."""
+        order = {tid: i for i, tid in enumerate(DEFAULT_TEMPLATE_ORDER)}
+        return sorted(
+            self.list_summaries(locale),
+            key=lambda s: (order.get(s.id, len(order)), s.id),
+        )
 
     def template_dir(self, template_id: str) -> Path:
         tpl = self._templates.get(template_id)

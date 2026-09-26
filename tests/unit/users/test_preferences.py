@@ -111,3 +111,10 @@ def test_clear_preferred_model_keeps_reasoning_defaults() -> None:
     cleared = merge_model_preferences_json(raw, preferred_model=None)
     assert get_preferred_model_from_json(cleared) is None
     assert "token/glm-5" in get_model_reasoning_from_json(cleared)
+
+
+def test_team_order_from_json_filters_blanks() -> None:
+    from octop.infra.users.preferences import get_team_order_from_json
+
+    assert get_team_order_from_json(None) == []
+    assert get_team_order_from_json('{"team_order": ["a", "", " b ", 3]}') == ["a", "b"]

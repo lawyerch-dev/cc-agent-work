@@ -65,6 +65,8 @@ export interface OctopAgent {
   member_ids?: string[];
   /** Department template id when this agent is a team created from a template. */
   template_id?: string | null;
+  /** Stable display code (``team-001``) for teams. */
+  team_code?: string | null;
   welcome_message?: string | null;
 }
 

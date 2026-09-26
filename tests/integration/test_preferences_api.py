@@ -86,3 +86,19 @@ async def test_preferences_timezone_rejects_invalid_value(env) -> None:
     client, _srv, auth = env
     r = await client.patch("/api/preferences", headers=auth, json={"timezone": "BAD_ZONE"})
     assert r.status_code in (400, 422)
+
+
+@pytest.mark.asyncio
+async def test_preferences_team_order_roundtrip(env) -> None:
+    client, _srv, auth = env
+    order = ["team-003-a", "team-001-a", "team-002-a"]
+    r = await client.patch("/api/preferences", headers=auth, json={"team_order": order})
+    assert r.status_code == 200
+    assert r.json()["team_order"] == order
+
+    r = await client.get("/api/preferences", headers=auth)
+    assert r.json()["team_order"] == order
+
+    r = await client.patch("/api/preferences", headers=auth, json={"team_order": None})
+    assert r.status_code == 200
+    assert r.json()["team_order"] == []

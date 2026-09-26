@@ -76,7 +76,7 @@ async def bootstrap_default_teams(
     if only_if_empty and has_team:
         return []
     created: list[dict[str, Any]] = []
-    for summary in catalog.list_summaries(locale or "zh"):
+    for summary in catalog.ordered_summaries(locale or "zh"):
         if summary.id in existing:
             continue
         row = await create_team_from_template(

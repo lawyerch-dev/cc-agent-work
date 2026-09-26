@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -20,6 +21,7 @@ TEAM_MIN_MEMBERS = 0
 TEAM_AVATAR_URL = "/experts/avatars/team-host.svg"
 TEMPLATE_DIR = Path(__file__).resolve().parent / "template"
 TEAM_MANIFEST_WORKSPACE = ".octop/manifest.json"
+_TEAM_CODE_RE = re.compile(r"^team-(\d+)$")
 
 # Hosts only dispatch and keep light memory/time — members do the work.
 HOST_TOOLS_ALLOWED: frozenset[str] = frozenset(
@@ -176,15 +178,39 @@ class TeamService:
         text = str(value).strip() if value else ""
         return text or None
 
-    def visible_member_ids(self, team_agent_id: str) -> list[str]:
-        """Persisted roster minus deleted / team-host ids. Does not rewrite disk."""
-        out: list[str] = []
-        for member_id in self.member_ids(team_agent_id):
+    def team_code(self, team_agent_id: str) -> str | None:
+        """Stable display code (``team-001``) assigned at creation, or ``None``."""
+        value = self._read_manifest(team_agent_id).get("team_code")
+        text = str(value).strip() if value else ""
+        return text or None
+
+    def team_fields(self, team_agent_id: str) -> dict[str, Any]:
+        """Roster + derived metadata from a single manifest read."""
+        data = self._read_manifest(team_agent_id)
+        visible: list[str] = []
+        for member_id in _member_ids_from_manifest(data):
             row = self._repos.agent_repo.get(member_id)
             if row is None or is_team_agent(row):
                 continue
-            out.append(member_id)
-        return out
+            visible.append(member_id)
+        code = str(data.get("team_code") or "").strip() or None
+        template = str(data.get("team_template") or "").strip() or None
+        return {"member_ids": visible, "team_code": code, "template_id": template}
+
+    def next_team_code(self, user_id: int) -> str:
+        """Next stable code in the ``team-NNN`` sequence for *user_id*."""
+        max_n = 0
+        for row in self._repos.agent_repo.list_by_user(user_id):
+            if not is_team_agent(row):
+                continue
+            match = _TEAM_CODE_RE.match(self.team_code(row.agent_id) or "")
+            if match:
+                max_n = max(max_n, int(match.group(1)))
+        return f"team-{max_n + 1:03d}"
+
+    def visible_member_ids(self, team_agent_id: str) -> list[str]:
+        """Persisted roster minus deleted / team-host ids. Does not rewrite disk."""
+        return list(self.team_fields(team_agent_id)["member_ids"])
 
     def validate_member_ids(self, user: Any, member_ids: list[str]) -> list[str]:
         """Treat *member_ids* as the complete next roster, not incremental adds.
@@ -269,7 +295,8 @@ class TeamService:
         return changed
 
     def team_payload(self, row: AgentRow) -> dict[str, Any]:
-        ids = self.visible_member_ids(row.agent_id)
+        fields = self.team_fields(row.agent_id)
+        ids = fields["member_ids"]
         member_rows = [self._repos.agent_repo.get(member_id) for member_id in ids]
         return {
             "team_id": row.agent_id,
@@ -284,7 +311,8 @@ class TeamService:
             "state": row.last_state or "unknown",
             "kind": TEAM_KIND,
             "member_ids": ids,
-            "template_id": self.template_id(row.agent_id),
+            "template_id": fields["template_id"],
+            "team_code": fields["team_code"],
             "members": [
                 {
                     "agent_id": member.agent_id,
@@ -315,6 +343,7 @@ async def seed_team_template(
     member_ids: list[str] | None = None,
     template_dir: Path | None = None,
     team_template_id: str | None = None,
+    team_code: str | None = None,
 ) -> None:
     source = template_dir or TEMPLATE_DIR
     pairs: list[tuple[str, bytes]] = []
@@ -339,6 +368,8 @@ async def seed_team_template(
             data["members"] = roster if roster is not None else list(data.get("members") or [])
             if team_template_id:
                 data["team_template"] = team_template_id
+            if team_code:
+                data["team_code"] = team_code
             pairs.append(
                 (
                     TEAM_MANIFEST_WORKSPACE,

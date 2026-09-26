@@ -2707,12 +2707,14 @@ class AgentManager:
         template_dir = None
         if spec.team_template_id and self._team_catalog is not None:
             template_dir = self._team_catalog.template_dir(spec.team_template_id)
+        team_code = self._teams.next_team_code(row.user_id) if row.user_id is not None else None
         workspace = self._backend_workspace_for_row(row)
         await seed_team_template(
             workspace,
             member_ids=list(spec.member_ids or []),
             template_dir=template_dir,
             team_template_id=spec.team_template_id,
+            team_code=team_code,
         )
 
     async def _seed_expert_template(self, row: AgentRow, template_name: str) -> None:

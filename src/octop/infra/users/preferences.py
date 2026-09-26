@@ -15,6 +15,7 @@ PREFERENCES_KEY_REMOTE_BROWSER_BOOKMARKS = "remote_browser_bookmarks"
 PREFERENCES_KEY_PREFERRED_MODEL = "preferred_model"
 PREFERENCES_KEY_MODEL_REASONING = "model_reasoning"
 PREFERENCES_KEY_TIMEZONE = "timezone"
+PREFERENCES_KEY_TEAM_ORDER = "team_order"
 MAX_BOOKMARK_TITLE_LEN = 80
 
 REASONING_MODES = frozenset({"auto", "enabled", "disabled"})
@@ -72,6 +73,15 @@ def get_remote_browser_bookmarks_from_json(raw: str | None) -> list[RemoteBrowse
     if not isinstance(items, list):
         return []
     return validate_remote_browser_bookmarks(items)
+
+
+def get_team_order_from_json(raw: str | None) -> list[str]:
+    """Per-user custom team ordering (list of ``agent_id``)."""
+    data = parse_preferences_json(raw)
+    items = data.get(PREFERENCES_KEY_TEAM_ORDER, [])
+    if not isinstance(items, list):
+        return []
+    return [str(x).strip() for x in items if isinstance(x, str) and str(x).strip()]
 
 
 def normalize_model_ref(value: Any) -> str | None:

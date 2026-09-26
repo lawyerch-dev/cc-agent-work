@@ -43,6 +43,22 @@ async def test_creates_then_backfills(tmp_path: Path) -> None:
     assert await bootstrap_default_teams(registry, catalog, user_id=1) == []
 
 
+@pytest.mark.asyncio
+async def test_default_teams_numbered_by_architecture_order(tmp_path: Path) -> None:
+    registry = _registry(tmp_path)
+    catalog = TeamCatalog(default_library_root())
+    catalog.refresh()
+    created = await bootstrap_default_teams(registry, catalog, user_id=1, only_if_empty=True)
+    codes = {c["template_id"]: c["team_code"] for c in created}
+    assert codes == {
+        "general-office": "team-001",
+        "hr-admin": "team-002",
+        "finance": "team-003",
+        "sales": "team-004",
+        "operations": "team-005",
+    }
+
+
 async def _manual_team(registry: AgentManager, name: str) -> None:
     from octop.infra.agents.manager import AgentCreateSpec
     from octop.infra.agents.teams.service import TEAM_TEMPLATE_NAME

@@ -232,3 +232,23 @@ def test_template_id_reads_manifest(team_env: dict[str, object]) -> None:
     assert host is not None
     assert teams.team_payload(host)["template_id"] == "sales"
     assert teams.team_payload(host)["member_ids"] == []
+
+
+def test_team_code_and_next_code(team_env: dict[str, object]) -> None:
+    teams = team_env["teams"]
+    workspace_for = team_env["workspace_for"]
+    assert isinstance(teams, TeamService)
+    workspace_for("host")
+    teams.replace_members("host", [])
+    raw = json.loads(workspace_for("host").read_text(".octop/manifest.json"))
+    raw["team_code"] = "team-003"
+    raw["team_template"] = "finance"
+    workspace_for("host").write_text(".octop/manifest.json", json.dumps(raw))
+    fields = teams.team_fields("host")
+    assert fields["team_code"] == "team-003"
+    assert fields["template_id"] == "finance"
+    assert fields["member_ids"] == []
+    assert teams.next_team_code(1) == "team-004"
+    host = team_env["agents"].get("host")
+    assert host is not None
+    assert teams.team_payload(host)["team_code"] == "team-003"
