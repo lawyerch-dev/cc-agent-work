@@ -104,7 +104,7 @@ export default function HitlPolicyPicker({
         </div>
       }
     >
-      <Tooltip title={triggerLabel} mouseEnterDelay={0.4}>
+      <Tooltip title={t("chat.hitl.policy.picker")} mouseEnterDelay={0.4}>
         <button
           className={`${styles.secondaryBtn} ${
             bypass ? styles.secondaryBtnModelActive : ""
