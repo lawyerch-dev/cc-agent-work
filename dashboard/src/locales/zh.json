@@ -802,6 +802,12 @@
       "emptyGuideStepHowDetail": "先在「我的员工」里准备至少两名员工，再选择成员（自己的或分享来的）和主管模型。",
       "emptyGuideStepChat": "怎么聊天",
       "emptyGuideStepChatDetail": "从侧栏进入团队聊天。主管负责调度，成员气泡会出现在同一房间。",
+      "templates": "团队模板",
+      "seedDefaults": "补齐默认团队",
+      "templateCreated": "已从模板创建团队",
+      "seedDone": "已补齐 {{count}} 个默认团队",
+      "seedNone": "默认团队已齐全",
+      "seedFailed": "操作失败，请稍后重试",
       "total": "共 {{count}} 个团队"
     },
     "goToLibrary": "去内置员工",

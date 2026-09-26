@@ -802,6 +802,12 @@
       "emptyGuideStepHowDetail": "Create at least two employees under My Employees, then pick members (owned or shared) and a Lead model.",
       "emptyGuideStepChat": "How to chat",
       "emptyGuideStepChatDetail": "Open the team from the sidebar. The Lead schedules; members speak in the same room.",
+      "templates": "Team templates",
+      "seedDefaults": "Add default teams",
+      "templateCreated": "Team created from template",
+      "seedDone": "Added {{count}} default team(s)",
+      "seedNone": "Default teams already complete",
+      "seedFailed": "Action failed, please try again",
       "total": "{{count}} team(s)"
     },
     "goToLibrary": "Go to Built-in Employees",

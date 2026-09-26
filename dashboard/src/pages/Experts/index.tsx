@@ -53,7 +53,8 @@ import CreateFromExpertDrawer, {
   type CreateFromTemplateSource,
 } from "./components/CreateFromExpertDrawer";
 import TeamDrawer from "./components/TeamDrawer";
-import type { TeamRecord } from "../../api/modules/teams";
+import TeamTemplateDrawer from "./components/TeamTemplateDrawer";
+import { teamsApi, type TeamRecord } from "../../api/modules/teams";
 import { TeamCard } from "./components/TeamCard";
 import { PublishedExpertCard } from "./components/PublishedExpertCard";
 import AgentExpertsTable from "./components/AgentExpertsTable";
@@ -257,6 +258,21 @@ export default function ExpertsPage() {
   const [teamDrawer, setTeamDrawer] = useState<
     { mode: "create" } | { mode: "edit"; team: OctopAgent } | null
   >(null);
+  const [templateDrawerOpen, setTemplateDrawerOpen] = useState(false);
+
+  const handleSeedDefaults = useCallback(async () => {
+    try {
+      const created = await teamsApi.seedDefaults();
+      if (created.length === 0) {
+        message.info(t("experts.teams.seedNone"));
+      } else {
+        message.success(t("experts.teams.seedDone", { count: created.length }));
+      }
+      void refreshAgents({ silent: true, force: true });
+    } catch (err) {
+      message.error(apiErrorMessage(err, t("experts.teams.seedFailed"), t));
+    }
+  }, [refreshAgents, t]);
 
   const handleEditSaved = useCallback(
     (
@@ -510,7 +526,6 @@ export default function ExpertsPage() {
 
   const teamsContent = useMemo(() => {
     if (teamAgents.length === 0) {
-      const canCreate = pickableExperts.length >= 2;
       return (
         <div
           className={`${styles.emptyLayout}${
@@ -542,10 +557,26 @@ export default function ExpertsPage() {
               label: t("experts.teams.create"),
               onClick: () => setTeamDrawer({ mode: "create" }),
               icon: <Plus size={14} />,
-              disabled: !canCreate,
-              title: canCreate ? undefined : t("experts.teams.membersMin"),
             }}
           />
+          <div className={styles.gridToolbar}>
+            <div className={styles.gridToolbarRight}>
+              <button
+                className={styles.toolbarBtn}
+                type="button"
+                onClick={() => setTemplateDrawerOpen(true)}
+              >
+                {t("experts.teams.templates")}
+              </button>
+              <button
+                className={styles.toolbarBtn}
+                type="button"
+                onClick={() => void handleSeedDefaults()}
+              >
+                {t("experts.teams.seedDefaults")}
+              </button>
+            </div>
+          </div>
         </div>
       );
     }
@@ -557,6 +588,20 @@ export default function ExpertsPage() {
           </span>
           <div className={styles.gridToolbarRight}>
             {refreshButton}
+            <button
+              className={styles.toolbarBtn}
+              type="button"
+              onClick={() => setTemplateDrawerOpen(true)}
+            >
+              {t("experts.teams.templates")}
+            </button>
+            <button
+              className={styles.toolbarBtn}
+              type="button"
+              onClick={() => void handleSeedDefaults()}
+            >
+              {t("experts.teams.seedDefaults")}
+            </button>
             <button
               className={styles.toolbarBtn}
               type="button"
@@ -586,6 +631,7 @@ export default function ExpertsPage() {
     );
   }, [
     handleDeleted,
+    handleSeedDefaults,
     handleStateChange,
     isMobile,
     pickableExperts,
@@ -763,6 +809,15 @@ export default function ExpertsPage() {
         lang={lang}
         onClose={() => setCreateSource(null)}
         onCreated={handleCreated}
+      />
+
+      <TeamTemplateDrawer
+        open={templateDrawerOpen}
+        onClose={() => setTemplateDrawerOpen(false)}
+        onCreated={() => {
+          setTemplateDrawerOpen(false);
+          void refreshAgents({ silent: true, force: true });
+        }}
       />
 
       <TeamDrawer
