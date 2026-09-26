@@ -33,10 +33,12 @@ async def test_bootstrap_creates_default_main_agent(patched_app_client: Any) -> 
     r = await c.get("/api/agents", headers=auth)
     assert r.status_code == 200
     agents = r.json()
-    assert len(agents) == 1
-    assert agents[0]["agent_id"] == "main"
-    assert agents[0]["name"] == "小通 · 通用助手"
-    assert agents[0]["state"] in {"created", "idle", "stopped", "failed", "running", "unknown"}
+    main = next(a for a in agents if a["agent_id"] == "main")
+    assert main["name"] == "小通 · 通用助手"
+    assert main["state"] in {"created", "idle", "stopped", "failed", "running", "unknown"}
+    teams = [a for a in agents if a.get("kind") == "team"]
+    assert len(teams) == 5
+    assert {a["name"] for a in teams} == {"总经办", "人事行政部", "财务部", "业务部", "运营部"}
 
 
 async def test_main_not_created_until_finish(patched_app_client: Any) -> None:
@@ -63,8 +65,9 @@ async def test_main_not_created_until_finish(patched_app_client: Any) -> None:
     )
     assert finish.status_code == 200
     r = await c.get("/api/agents", headers=auth)
-    assert len(r.json()) == 1
-    assert r.json()[0]["agent_id"] == "main"
+    agents = r.json()
+    assert next(a for a in agents if a["agent_id"] == "main")
+    assert len([a for a in agents if a.get("kind") == "team"]) == 5
 
 
 async def test_double_bootstrap_returns_410(patched_app_client: Any) -> None:
@@ -130,7 +133,6 @@ async def test_main_agent_uses_general_assistant_template(patched_app_client: An
     auth = await auth_header(c)
     r = await c.get("/api/agents", headers=auth)
     assert r.status_code == 200
-    agent = r.json()[0]
-    assert agent["agent_id"] == "main"
+    agent = next(a for a in r.json() if a["agent_id"] == "main")
     assert agent["name"] == "小通 · 通用助手"
     assert agent.get("template_name") == "general-assistant"

@@ -13,9 +13,13 @@ vi.mock("../../Agent/Workspace/components/WorkspaceDrawer", () => ({
 }));
 vi.mock("./ChannelCatalogDrawer", () => ({ default: () => null }));
 vi.mock("./MemoryCatalogDrawer", () => ({ default: () => null }));
-vi.mock("../../../api/modules/teams", () => ({ teamsApi: { remove: vi.fn() } }));
+vi.mock("../../../api/modules/teams", () => ({
+  teamsApi: { remove: vi.fn() },
+}));
 vi.mock("../../../api/request", () => ({ request: vi.fn() }));
-vi.mock("react-i18next", () => ({ useTranslation: () => ({ t: (k: string) => k }) }));
+vi.mock("react-i18next", () => ({
+  useTranslation: () => ({ t: (k: string) => k }),
+}));
 
 const agent = {
   agent_id: "t1",

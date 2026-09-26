@@ -22,11 +22,7 @@ describe("TeamTemplateDrawer", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("lists templates", async () => {
-    render(
-      <TeamTemplateDrawer open onClose={() => {}} onCreated={() => {}} />,
-    );
-    await waitFor(() =>
-      expect(screen.getByText("财务部")).toBeInTheDocument(),
-    );
+    render(<TeamTemplateDrawer open onClose={() => {}} onCreated={() => {}} />);
+    await waitFor(() => expect(screen.getByText("财务部")).toBeInTheDocument());
   });
 });

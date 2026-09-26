@@ -126,14 +126,11 @@ async def seed_default_teams(
     server: Any = Depends(get_server),
 ) -> list[dict[str, Any]]:
     assert server.app_runtime is not None
-    return cast(
-        list[dict[str, Any]],
-        await bootstrap_default_teams(
-            server.app_runtime.agent_registry,
-            getattr(server, "team_catalog", None),
-            user_id=user.id,
-            locale=getattr(user, "locale", None),
-        ),
+    return await bootstrap_default_teams(
+        server.app_runtime.agent_registry,
+        getattr(server, "team_catalog", None),
+        user_id=user.id,
+        locale=getattr(user, "locale", None),
     )
 
 

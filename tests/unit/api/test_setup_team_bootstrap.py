@@ -33,9 +33,7 @@ async def test_setup_bootstrap_teams_calls_bootstrap(monkeypatch: pytest.MonkeyP
     monkeypatch.setattr(
         "octop.infra.agents.teams.bootstrap.bootstrap_default_teams", fake_bootstrap
     )
-    server = SimpleNamespace(
-        app_runtime=SimpleNamespace(agent_registry="REG"), team_catalog="CAT"
-    )
+    server = SimpleNamespace(app_runtime=SimpleNamespace(agent_registry="REG"), team_catalog="CAT")
     await setup_mod._bootstrap_default_teams(server, user_id=7, locale="en")
     assert calls == {
         "registry": "REG",

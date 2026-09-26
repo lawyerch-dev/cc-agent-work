@@ -64,11 +64,11 @@ async def test_invite_create_list_redeem_and_one_time(env) -> None:
     )
     assert agents.status_code == 200, agents.text
     bob_agents = agents.json()
-    assert len(bob_agents) == 1
-    assert bob_agents[0]["template_name"] == "general-assistant"
-    assert bob_agents[0]["agent_id"] != "main"
+    default_expert = next(a for a in bob_agents if a.get("template_name") == "general-assistant")
+    assert default_expert["agent_id"] != "main"
+    assert len([a for a in bob_agents if a.get("kind") == "team"]) == 5
     assert srv.app_runtime is not None
-    bob_row = srv.app_runtime.agent_registry.get_row(bob_agents[0]["agent_id"])
+    bob_row = srv.app_runtime.agent_registry.get_row(default_expert["agent_id"])
     assert bob_row is not None
     bob_cfg = json.loads(bob_row.config_json or "{}")
     assert bob_cfg["backend"] == default_home_local_backend()

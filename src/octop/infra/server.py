@@ -18,7 +18,8 @@ from octop.infra.agents.experts.catalog import ExpertCatalog, default_library_ro
 from octop.infra.agents.manager import AgentManager
 from octop.infra.agents.plugins.manager import PluginManager
 from octop.infra.agents.subagents.catalog import SubagentCatalog, default_package_root
-from octop.infra.agents.teams.catalog import TeamCatalog, default_library_root as default_team_library_root
+from octop.infra.agents.teams.catalog import TeamCatalog
+from octop.infra.agents.teams.catalog import default_library_root as default_team_library_root
 from octop.infra.cron.manager import CronManager
 from octop.infra.db.factory import open_database, should_defer_control_plane_db
 from octop.infra.db.migrate import run_migrations

@@ -63,8 +63,11 @@ export const teamsApi = {
   templateFiles: () => request<TeamTemplateFile[]>("/teams/template"),
   listTemplates: () => request<TeamTemplateSummary[]>("/team-templates"),
   createFromTemplate: (templateId: string) =>
-    request<TeamRecord>(`/teams/from-template/${templateId}`, { method: "POST" }),
-  seedDefaults: () => request<TeamRecord[]>("/teams/seed-defaults", { method: "POST" }),
+    request<TeamRecord>(`/teams/from-template/${templateId}`, {
+      method: "POST",
+    }),
+  seedDefaults: () =>
+    request<TeamRecord[]>("/teams/seed-defaults", { method: "POST" }),
   get: (teamId: string) => request<TeamRecord>(`/teams/${teamId}`),
   create: (body: TeamWriteBody & { name: string; member_ids: string[] }) =>
     request<TeamRecord>("/teams", {

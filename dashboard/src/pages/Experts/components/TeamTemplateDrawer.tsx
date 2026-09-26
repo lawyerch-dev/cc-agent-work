@@ -37,9 +37,7 @@ export default function TeamTemplateDrawer({
       })
       .catch((err) => {
         if (!cancelled) {
-          message.error(
-            apiErrorMessage(err, t("experts.teams.seedFailed"), t),
-          );
+          message.error(apiErrorMessage(err, t("experts.teams.seedFailed"), t));
         }
       })
       .finally(() => {
@@ -105,7 +103,10 @@ export default function TeamTemplateDrawer({
                   {t("experts.teams.create")}
                 </Button>
               </div>
-              <Typography.Paragraph type="secondary" style={{ margin: "8px 0" }}>
+              <Typography.Paragraph
+                type="secondary"
+                style={{ margin: "8px 0" }}
+              >
                 {tpl.description}
               </Typography.Paragraph>
               {tpl.suggested_roles.length > 0 && (

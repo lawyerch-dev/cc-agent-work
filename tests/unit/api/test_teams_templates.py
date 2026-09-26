@@ -62,7 +62,5 @@ async def test_list_create_and_seed(tmp_path: Path) -> None:
 async def test_unknown_template_raises(tmp_path: Path) -> None:
     server = _server(tmp_path)
     with pytest.raises(OctopError) as exc:
-        await teams_router.create_team_from_template_endpoint(
-            "nope", user=_user(), server=server
-        )
+        await teams_router.create_team_from_template_endpoint("nope", user=_user(), server=server)
     assert exc.value.code is ErrorCode.TEAM_TEMPLATE_NOT_FOUND

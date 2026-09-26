@@ -68,8 +68,8 @@ export default function TeamDrawer({
     memberCount === 1
       ? t("experts.teams.membersRecommend")
       : memberCount === 0
-        ? t("experts.teams.emptyMembersHint")
-        : t("experts.teams.membersHint");
+      ? t("experts.teams.emptyMembersHint")
+      : t("experts.teams.membersHint");
 
   useEffect(() => {
     if (!open) {
