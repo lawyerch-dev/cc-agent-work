@@ -6,9 +6,9 @@
     border-radius: 12px;
     box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
     overflow: hidden;
-    width: 400px;
-    min-width: 400px;
-    max-width: calc(100vw - 24px);
+    width: auto;
+    min-width: 0;
+    max-width: calc(100vw - 16px);
   }
 
   :global(.ant-popover-inner-content) {
@@ -17,12 +17,15 @@
   }
 }
 
+/* Size from viewport height so short windows get a compact card
+   and tall ones cap out — keeps a ~0.7 width/height ratio. */
 .panel {
   display: flex;
   flex-direction: column;
-  width: 100%;
-  min-width: 0;
-  max-height: min(72dvh, 640px);
+  --panel-max-h: min(68dvh, 520px);
+  width: min(348px, calc(var(--panel-max-h) * 0.72));
+  max-width: calc(100vw - 16px);
+  max-height: var(--panel-max-h);
   background: var(--fn-bg-elevated, #fff);
 }
 
@@ -246,6 +249,8 @@
   }
 
   .panel {
+    width: 100%;
+    max-width: none;
     max-height: none;
   }
 }
