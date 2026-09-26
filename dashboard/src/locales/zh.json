@@ -806,9 +806,9 @@
       "membersRecommend": "建议至少 2 名成员。",
       "pendingMembers": "待添加成员",
       "templates": "团队模板",
-      "seedDefaults": "补齐默认团队",
+      "seedDefaults": "创建默认团队",
       "templateCreated": "已从模板创建团队",
-      "seedDone": "已补齐 {{count}} 个默认团队",
+      "seedDone": "已创建 {{count}} 个默认团队",
       "seedNone": "默认团队已齐全",
       "seedFailed": "操作失败，请稍后重试",
       "total": "共 {{count}} 个团队"

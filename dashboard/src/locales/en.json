@@ -806,9 +806,9 @@
       "membersRecommend": "At least 2 members are recommended.",
       "pendingMembers": "Add members",
       "templates": "Team templates",
-      "seedDefaults": "Add default teams",
+      "seedDefaults": "Create default teams",
       "templateCreated": "Team created from template",
-      "seedDone": "Added {{count}} default team(s)",
+      "seedDone": "Created {{count}} default team(s)",
       "seedNone": "Default teams already complete",
       "seedFailed": "Action failed, please try again",
       "total": "{{count}} team(s)"

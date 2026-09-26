@@ -525,92 +525,77 @@ export default function ExpertsPage() {
   ]);
 
   const teamsContent = useMemo(() => {
+    const teamToolbar = (
+      <div className={styles.gridToolbar}>
+        <span className={styles.gridCount}>
+          {teamAgents.length > 0
+            ? t("experts.teams.total", { count: teamAgents.length })
+            : null}
+        </span>
+        <div className={styles.gridToolbarRight}>
+          {refreshButton}
+          <button
+            className={styles.toolbarBtn}
+            type="button"
+            onClick={() => setTemplateDrawerOpen(true)}
+          >
+            {t("experts.teams.templates")}
+          </button>
+          <button
+            className={styles.toolbarBtn}
+            type="button"
+            onClick={() => void handleSeedDefaults()}
+          >
+            {t("experts.teams.seedDefaults")}
+          </button>
+          <button
+            className={styles.toolbarBtn}
+            type="button"
+            onClick={() => setTeamDrawer({ mode: "create" })}
+          >
+            {t("experts.teams.create")}
+          </button>
+        </div>
+      </div>
+    );
     if (teamAgents.length === 0) {
       return (
-        <div
-          className={`${styles.emptyLayout}${
-            isMobile ? ` ${styles.emptyLayoutMobile}` : ""
-          }`}
-        >
-          <StreamSetupGuide
-            className={styles.emptyGuide}
-            wide
-            plain
-            icon={<OctopEmptyMascot />}
-            title={t("experts.teams.emptyGuideTitle")}
-            description={t("experts.teams.emptyGuideDesc")}
-            steps={[
-              {
-                label: t("experts.teams.emptyGuideStepWhat"),
-                detail: t("experts.teams.emptyGuideStepWhatDetail"),
-              },
-              {
-                label: t("experts.teams.emptyGuideStepHow"),
-                detail: t("experts.teams.emptyGuideStepHowDetail"),
-              },
-              {
-                label: t("experts.teams.emptyGuideStepChat"),
-                detail: t("experts.teams.emptyGuideStepChatDetail"),
-              },
-            ]}
-            primaryAction={{
-              label: t("experts.teams.create"),
-              onClick: () => setTeamDrawer({ mode: "create" }),
-              icon: <Plus size={14} />,
-            }}
-          />
-          <div className={styles.gridToolbar}>
-            <div className={styles.gridToolbarRight}>
-              <button
-                className={styles.toolbarBtn}
-                type="button"
-                onClick={() => setTemplateDrawerOpen(true)}
-              >
-                {t("experts.teams.templates")}
-              </button>
-              <button
-                className={styles.toolbarBtn}
-                type="button"
-                onClick={() => void handleSeedDefaults()}
-              >
-                {t("experts.teams.seedDefaults")}
-              </button>
-            </div>
+        <>
+          {teamToolbar}
+          <div
+            className={`${styles.emptyLayout}${
+              isMobile ? ` ${styles.emptyLayoutMobile}` : ""
+            }`}
+          >
+            <StreamSetupGuide
+              className={styles.emptyGuide}
+              wide
+              plain
+              icon={<OctopEmptyMascot />}
+              title={t("experts.teams.emptyGuideTitle")}
+              description={t("experts.teams.emptyGuideDesc")}
+              steps={[
+                {
+                  label: t("experts.teams.emptyGuideStepWhat"),
+                  detail: t("experts.teams.emptyGuideStepWhatDetail"),
+                },
+                {
+                  label: t("experts.teams.emptyGuideStepHow"),
+                  detail: t("experts.teams.emptyGuideStepHowDetail"),
+                },
+                {
+                  label: t("experts.teams.emptyGuideStepChat"),
+                  detail: t("experts.teams.emptyGuideStepChatDetail"),
+                },
+              ]}
+            />
           </div>
-        </div>
+        </>
       );
     }
     return (
       <>
-        <div className={styles.gridToolbar}>
-          <span className={styles.gridCount}>
-            {t("experts.teams.total", { count: teamAgents.length })}
-          </span>
-          <div className={styles.gridToolbarRight}>
-            {refreshButton}
-            <button
-              className={styles.toolbarBtn}
-              type="button"
-              onClick={() => setTemplateDrawerOpen(true)}
-            >
-              {t("experts.teams.templates")}
-            </button>
-            <button
-              className={styles.toolbarBtn}
-              type="button"
-              onClick={() => void handleSeedDefaults()}
-            >
-              {t("experts.teams.seedDefaults")}
-            </button>
-            <button
-              className={styles.toolbarBtn}
-              type="button"
-              onClick={() => setTeamDrawer({ mode: "create" })}
-            >
-              {t("experts.teams.create")}
-            </button>
-          </div>
-        </div>
+        {teamToolbar}
         <div className={styles.cardGrid}>
           {teamAgents.map((agent) => (
             <div key={agent.agent_id}>
