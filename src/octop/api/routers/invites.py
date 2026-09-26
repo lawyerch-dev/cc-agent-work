@@ -145,6 +145,16 @@ async def redeem_invite(
     from octop.infra.agents.default_agent import try_bootstrap_default_agent
 
     await try_bootstrap_default_agent(server, user_id=user.id, locale=user.locale)
+    from octop.infra.agents.teams.bootstrap import bootstrap_default_teams
+
+    if server.app_runtime is not None:
+        await bootstrap_default_teams(
+            server.app_runtime.agent_registry,
+            getattr(server, "team_catalog", None),
+            user_id=user.id,
+            locale=user.locale,
+            only_if_empty=True,
+        )
     secret = server.services.secret_repo.get("jwt")
     ttl = server.services.config.access_token_ttl_seconds
     token = sign_token(

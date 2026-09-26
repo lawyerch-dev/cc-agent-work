@@ -170,6 +170,21 @@ async def _bootstrap_default_agent(server: Any, *, user_id: int, locale: str = "
     )
 
 
+async def _bootstrap_default_teams(server: Any, *, user_id: int, locale: str = "zh") -> None:
+    """Create the department team set for a fresh install (empty rosters)."""
+    from octop.infra.agents.teams.bootstrap import bootstrap_default_teams
+
+    if server.app_runtime is None:
+        raise OctopError(ErrorCode.INTERNAL_ERROR, "app_runtime not ready")
+    await bootstrap_default_teams(
+        server.app_runtime.agent_registry,
+        getattr(server, "team_catalog", None),
+        user_id=user_id,
+        locale=locale,
+        only_if_empty=True,
+    )
+
+
 async def _apply_provider_draft(server: Any, draft: ProviderDraftBody) -> None:
     """Persist provider config from the wizard and reload harness providers."""
     api_key = (draft.api_key or "").strip()
@@ -436,6 +451,7 @@ async def finish(
     if admin is not None:
         try:
             await _bootstrap_default_agent(server, user_id=admin.id, locale=admin.locale)
+            await _bootstrap_default_teams(server, user_id=admin.id, locale=admin.locale)
         except Exception as exc:  # pragma: no cover
             logger.warning("could not auto-create default agent: %s", exc)
     if wizard_token is not None:
