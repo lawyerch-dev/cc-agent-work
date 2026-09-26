@@ -9,7 +9,7 @@
 | # | 决策 |
 |---|------|
 | 1 | 成员仍是独立专家，可同时加入多个团队 |
-| 2 | 创建团队至少 2 个成员（不含主持人） |
+| 2 | 创建团队允许空编制（0 成员）；建议 ≥2，成员可稍后添加 |
 | 3 | 成员只能是普通专家，不能套团队 |
 | 4 | 可加入：自己的专家 + 分享给自己的专家 |
 | 5 | 分享来的专家可以真正派工；产出进对方工作区/聊天，不能改对方配置 |
@@ -130,10 +130,32 @@ conversation_id = 主持人 thread_id
 | 方法 | 路径 | 说明 |
 |------|------|------|
 | GET | `/api/teams` | 当前用户的团队（含成员摘要） |
-| POST | `/api/teams` | 创建主持人 + 至少 2 名成员 |
+| POST | `/api/teams` | 创建团队（允许 0 成员） |
+| GET | `/api/team-templates` | 内置部门团队模板摘要 |
+| POST | `/api/teams/from-template/{id}` | 用部门模板创建团队（空编制） |
+| POST | `/api/teams/seed-defaults` | 幂等补齐缺失的默认部门团队 |
 | GET | `/api/teams/{team_id}` | 详情 |
 | PATCH | `/api/teams/{team_id}` | 改名称/模型/欢迎语/成员（在途则拒改该成员） |
 | DELETE | `/api/teams/{team_id}` | 删除团队主持人 |
+
+`GET /api/agents` 增加 `kind`；团队行带 `member_ids` 与 `template_id`。`kind=team` 不可 `is_shared`。
+
+## 部门团队模板（人财物）
+
+中小公司按「人、财、物 + 业务 + 管理」预设 5 个部门团队，成员留空、可稍后添加：
+
+| 模板 id | 部门 |
+|---------|------|
+| `general-office` | 总经办 |
+| `hr-admin` | 人事行政部 |
+| `finance` | 财务部 |
+| `sales` | 业务部 |
+| `operations` | 运营部 |
+
+- 模板数据在 `src/octop/infra/agents/teams/library/<id>/`：`manifest.json`（`label` / `description` / `welcome_message` / `suggested_roles`，双语）+ `AGENTS.md`（部门协调准则）+ `SOUL.md` + `MEMORY.md`。
+- `TeamCatalog` 在服务启动时扫描该目录；团队来源记在主持人工作区 `.octop/manifest.json` 的 `team_template` 字段（`template_name` 仍为 `team-host`）。
+- 新用户首次登录（setup 向导完成 / 邀请兑换）自动预建整套空团队；`POST /api/teams/seed-defaults` 幂等补齐缺失项。
+- 成员为空时团队仍可创建、可进入聊天，主持人提示用户先添加成员，不自行代做。
 
 `GET /api/agents` 增加 `kind`；团队行带 `member_ids`。`kind=team` 不可 `is_shared`。
 
