@@ -4,7 +4,12 @@
   },
   "layout": {
     "collapsePanel": "Collapse panel",
-    "expandPanel": "Expand panel"
+    "expandPanel": "Expand panel",
+    "sidebar": {
+      "resizeHandle": "Resize sidebar",
+      "expandNav": "Expand sidebar",
+      "collapseNav": "Collapse sidebar"
+    }
   },
   "desktopChrome": {
     "group": "Window controls",

@@ -6,6 +6,64 @@
   }
 }
 
+.brandToggleBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--fn-radius-md);
+  background: transparent;
+  color: var(--fn-text-tertiary);
+  cursor: pointer;
+  transition:
+    background var(--fn-transition-fast),
+    color var(--fn-transition-fast);
+
+  &:hover {
+    background: color-mix(in srgb, var(--fn-text-primary) 8%, transparent);
+    color: var(--fn-text-primary);
+  }
+}
+
+.resizeHandle {
+  width: 4px;
+  flex-shrink: 0;
+  cursor: col-resize;
+  background: transparent;
+  position: relative;
+  align-self: stretch;
+  margin-left: -1px;
+  transition: background var(--fn-transition-fast);
+
+  &::before {
+    content: "";
+    position: absolute;
+    left: 1px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--fn-color-brand);
+    opacity: 0;
+    transition: opacity var(--fn-transition-fast);
+  }
+
+  &:hover::before,
+  &:focus-visible::before {
+    opacity: 1;
+  }
+
+  &:hover {
+    background: color-mix(in srgb, var(--fn-color-brand) 6%, transparent);
+  }
+
+  &:focus-visible {
+    outline: none;
+  }
+}
+
 .navGroupHeader {
   display: flex;
   align-items: center;
@@ -25,7 +83,7 @@
     background: color-mix(in srgb, var(--fn-text-primary) 3%, transparent);
 
     .navGroupChevron {
-      opacity: 0.5;
+      opacity: 0.85;
     }
   }
 }
@@ -44,7 +102,7 @@
 .navGroupChevron {
   flex-shrink: 0;
   color: var(--fn-sidebar-group-text);
-  opacity: 0.28;
+  opacity: 0.55;
   transition:
     transform 0.2s ease,
     opacity 0.15s ease;

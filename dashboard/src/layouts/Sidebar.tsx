@@ -5,7 +5,7 @@ import type { TFunction } from "i18next";
 import AvatarDropdown from "../components/AvatarDropdown";
 import AppVersionBadge from "../components/AppVersionBadge";
 import CurrentVersionBadge from "../components/CurrentVersionBadge";
-import { ArrowRightLeft, X, ChevronDown } from "lucide-react";
+import { PanelLeftOpen, PanelLeftClose, X, ChevronDown } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import { useLayoutMode } from "../context/LayoutModeContext";
 import { useUserRole } from "../hooks/useUserRole";
@@ -15,6 +15,7 @@ import { prefetchRoute } from "../routes/prefetch";
 import { useServerCapabilities } from "../hooks/useServerCapabilities";
 import { useChatSidebarOpen } from "../pages/Chat/hooks/useChatSidebarState";
 import { EXPAND_CHAT_RAIL_EVENT } from "../pages/Chat/components/ChatSidebarPanel";
+import { useHorizontalResize } from "../hooks/useHorizontalResize";
 import {
   CHAT_HISTORY_RAIL_ID,
   OPEN_NAV_RECORDS_EVENT,
@@ -115,8 +116,6 @@ function NavItemButton({
   active,
   isMobile,
   onNavigate,
-  onExpandChatRail,
-  showChatRailExpand,
   role,
   hasUpdate,
   t,
@@ -125,16 +124,10 @@ function NavItemButton({
   active: boolean;
   isMobile?: boolean;
   onNavigate: (path: string) => void;
-  onExpandChatRail?: () => void;
-  showChatRailExpand?: boolean;
   role: "admin" | "user" | null;
   hasUpdate: boolean;
   t: TFunction<"translation", undefined>;
 }) {
-  const showExpand = Boolean(
-    showChatRailExpand && item.key === "chat" && onExpandChatRail,
-  );
-
   return (
     <div
       className={styles.navItemRow}
@@ -163,7 +156,7 @@ function NavItemButton({
             : "var(--fn-text-secondary)",
           fontSize: typeSize(14, isMobile),
           fontWeight: active ? 500 : 400,
-          paddingRight: showExpand ? 4 : 12,
+          paddingRight: 12,
         }}
       >
         <span
@@ -217,20 +210,6 @@ function NavItemButton({
           )}
         </span>
       </button>
-      {showExpand ? (
-        <button
-          type="button"
-          className={styles.chatRailExpandBtn}
-          onClick={(e) => {
-            e.stopPropagation();
-            onExpandChatRail?.();
-          }}
-          aria-label={t("chat.expandHistorySidebar", "展开对话历史")}
-          title={t("chat.expandHistorySidebar", "展开对话历史")}
-        >
-          <ArrowRightLeft size={14} strokeWidth={1.8} aria-hidden />
-        </button>
-      ) : null}
     </div>
   );
 }
@@ -238,8 +217,6 @@ function NavItemButton({
 function NavList({
   selectedKey,
   onNavigate,
-  onExpandChatRail,
-  showChatRailExpand,
   isMobile,
   isGroupCollapsed,
   toggleGroup,
@@ -249,8 +226,6 @@ function NavList({
 }: {
   selectedKey: string;
   onNavigate: (path: string) => void;
-  onExpandChatRail?: () => void;
-  showChatRailExpand?: boolean;
   isMobile?: boolean;
   isGroupCollapsed: (groupKey: string) => boolean;
   toggleGroup: (groupKey: string) => void;
@@ -310,8 +285,6 @@ function NavList({
                     active={selectedKey === item.key}
                     isMobile={isMobile}
                     onNavigate={onNavigate}
-                    onExpandChatRail={onExpandChatRail}
-                    showChatRailExpand={showChatRailExpand}
                     role={role}
                     hasUpdate={hasUpdate}
                     t={t}
@@ -352,8 +325,6 @@ function NavList({
                     active={selectedKey === item.key}
                     isMobile={isMobile}
                     onNavigate={onNavigate}
-                    onExpandChatRail={onExpandChatRail}
-                    showChatRailExpand={showChatRailExpand}
                     role={role}
                     hasUpdate={hasUpdate}
                     t={t}
@@ -392,9 +363,18 @@ export default function Sidebar({
     selectedKey,
   );
   const [chatSidebarOpen, setChatSidebarOpen] = useChatSidebarOpen();
-  const showChatRailExpand = !isMinimal && !chatSidebarOpen;
 
   const isRailCollapsed = collapsed && !isMobile;
+  const {
+    size: expandedWidth,
+    isResizing,
+    onResizeStart,
+  } = useHorizontalResize({
+    min: 180,
+    max: 360,
+    defaultSize: EXPANDED_WIDTH,
+    storageKey: "octop:sidebar-width",
+  });
   const wordmarkSrc = isDark
     ? "/logo_horizontal_white.png"
     : "/logo_horizontal_dark.png";
@@ -436,25 +416,18 @@ export default function Sidebar({
     if (isMobile) onToggle();
   };
 
-  const handleExpandChatRail = useCallback(() => {
-    if (isMinimal) {
-      selectMinimalPane("records", { expand: true });
-      return;
+  const handleBrandToggle = useCallback(() => {
+    const willExpand = collapsed;
+    onToggle();
+    if (
+      willExpand &&
+      !isMinimal &&
+      window.location.pathname.startsWith("/chat") &&
+      !chatSidebarOpen
+    ) {
+      setChatSidebarOpen(true);
     }
-    window.dispatchEvent(new Event(EXPAND_CHAT_RAIL_EVENT));
-    setChatSidebarOpen(true);
-    if (!window.location.pathname.startsWith("/chat")) {
-      navigate("/chat");
-    }
-    if (isMobile) onToggle();
-  }, [
-    isMinimal,
-    isMobile,
-    navigate,
-    onToggle,
-    selectMinimalPane,
-    setChatSidebarOpen,
-  ]);
+  }, [collapsed, isMinimal, chatSidebarOpen, onToggle, setChatSidebarOpen]);
 
   const brandInner = (
     <>
@@ -538,8 +511,6 @@ export default function Sidebar({
     <NavList
       selectedKey={selectedKey}
       onNavigate={handleNavigate}
-      onExpandChatRail={handleExpandChatRail}
-      showChatRailExpand={showChatRailExpand}
       isMobile={isMobile}
       isGroupCollapsed={isGroupCollapsed}
       toggleGroup={toggleGroup}
@@ -576,8 +547,6 @@ export default function Sidebar({
             <NavList
               selectedKey={selectedKey}
               onNavigate={handleNavigate}
-              onExpandChatRail={handleExpandChatRail}
-              showChatRailExpand={false}
               isMobile={isMobile}
               isGroupCollapsed={isGroupCollapsed}
               toggleGroup={toggleGroup}
@@ -711,53 +680,98 @@ export default function Sidebar({
   }
 
   // Desktop: custom sidebar with icon-only collapsed mode.
-  // Right border is drawn by MainLayout's RailEdgeControl.
+  // Right border is no longer needed: the sidebar's resize handle now provides
+  // the visual edge and toggle lives in the brand row above.
   return (
     <div
+      data-split-divider=""
       style={{
-        width: isRailCollapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH,
-        minWidth: isRailCollapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH,
-        background: "var(--fn-sidebar-bg)",
-        borderRight: "none",
-        transition:
-          "width 0.25s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
-        overflow: "hidden",
         display: "flex",
-        flexDirection: "column",
+        flexDirection: "row",
         flexShrink: 0,
         alignSelf: "stretch",
         minHeight: 0,
+        position: "relative",
+        zIndex: 31,
       }}
     >
       <div
-        className={`${styles.sidebarBrand} ${DESKTOP_DRAG_REGION_CLASS}`}
         style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 6,
-          minWidth: 0,
-          padding: isRailCollapsed ? "12px 0" : "14px 14px 10px",
-          justifyContent: isRailCollapsed ? "center" : "flex-start",
-          flexShrink: 0,
-        }}
-      >
-        {brandInner}
-      </div>
-
-      <div
-        style={{
-          flex: 1,
-          minHeight: 0,
-          overflowY: isMinimal && minimalPane === "records" ? "hidden" : "auto",
-          overflowX: "hidden",
+          width: isRailCollapsed ? COLLAPSED_WIDTH : expandedWidth,
+          minWidth: isRailCollapsed ? COLLAPSED_WIDTH : undefined,
+          background: "var(--fn-sidebar-bg)",
+          borderRight: "none",
+          transition: isResizing
+            ? "none"
+            : "width 0.25s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+          overflow: "hidden",
           display: "flex",
           flexDirection: "column",
+          minHeight: 0,
         }}
       >
-        {navScrollBody}
-      </div>
+        <div
+          className={`${styles.sidebarBrand} ${DESKTOP_DRAG_REGION_CLASS}`}
+          style={{
+            display: "flex",
+            flexDirection: isRailCollapsed ? "column" : "row",
+            alignItems: "center",
+            gap: isRailCollapsed ? 6 : 6,
+            minWidth: 0,
+            padding: isRailCollapsed ? "10px 0 12px" : "14px 14px 10px",
+            justifyContent: isRailCollapsed ? "center" : "space-between",
+            flexShrink: 0,
+          }}
+        >
+          {brandInner}
+          <button
+            type="button"
+            className={styles.brandToggleBtn}
+            onClick={handleBrandToggle}
+            aria-label={
+              collapsed
+                ? t("layout.sidebar.expandNav", "展开侧栏")
+                : t("layout.sidebar.collapseNav", "收起侧栏")
+            }
+            title={
+              collapsed
+                ? t("layout.sidebar.expandNav", "展开侧栏")
+                : t("layout.sidebar.collapseNav", "收起侧栏")
+            }
+          >
+            {collapsed ? (
+              <PanelLeftOpen size={16} strokeWidth={1.8} aria-hidden />
+            ) : (
+              <PanelLeftClose size={16} strokeWidth={1.8} aria-hidden />
+            )}
+          </button>
+        </div>
 
-      {userFooter}
+        <div
+          style={{
+            flex: 1,
+            minHeight: 0,
+            overflowY:
+              isMinimal && minimalPane === "records" ? "hidden" : "auto",
+            overflowX: "hidden",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          {navScrollBody}
+        </div>
+
+        {userFooter}
+      </div>
+      {!isRailCollapsed ? (
+        <div
+          className={styles.resizeHandle}
+          role="separator"
+          aria-orientation="vertical"
+          aria-label={t("layout.sidebar.resizeHandle")}
+          onPointerDown={onResizeStart}
+        />
+      ) : null}
     </div>
   );
 }

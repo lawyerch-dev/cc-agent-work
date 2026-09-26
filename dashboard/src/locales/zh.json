@@ -4,7 +4,12 @@
   },
   "layout": {
     "collapsePanel": "收起面板",
-    "expandPanel": "展开面板"
+    "expandPanel": "展开面板",
+    "sidebar": {
+      "resizeHandle": "调整侧栏宽度",
+      "expandNav": "展开侧栏",
+      "collapseNav": "收起侧栏"
+    }
   },
   "desktopChrome": {
     "group": "窗口控制",

@@ -3,7 +3,6 @@ import { lazy, Suspense, useEffect, useState, useCallback } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import Sidebar from "../Sidebar";
 import Header from "../Header";
-import RailEdgeControl from "../../components/RailEdgeControl";
 import PageLoading from "../../components/PageLoading";
 import { ServiceRestartProvider } from "../../context/ServiceRestartContext";
 import { BackupOperationProvider } from "../../context/BackupOperationContext";
@@ -67,7 +66,7 @@ export default function MainLayout() {
   const onWorkbench = isWorkbenchPath(currentPath);
 
   const [collapsed, setCollapsed] = useState(() => getSavedCollapsed());
-  const [chatSidebarOpen, setChatSidebarOpen] = useChatSidebarOpen();
+  const [, setChatSidebarOpen] = useChatSidebarOpen();
   const [workbenchMounted, setWorkbenchMounted] = useState(() => onWorkbench);
 
   useEffect(() => {
@@ -89,29 +88,6 @@ export default function MainLayout() {
   const toggleCollapsed = useCallback(() => {
     persistNavCollapsed(!collapsed);
   }, [collapsed, persistNavCollapsed]);
-
-  /**
-   * Desktop nav rail edge:
-   * - expand: open nav; if classic chat history is also closed, open both
-   * - collapse: collapse nav only
-   */
-  const handleNavRailToggle = useCallback(() => {
-    if (collapsed) {
-      persistNavCollapsed(false);
-      if (!isMinimalLayout && isChatPath(currentPath) && !chatSidebarOpen) {
-        setChatSidebarOpen(true);
-      }
-      return;
-    }
-    persistNavCollapsed(true);
-  }, [
-    collapsed,
-    chatSidebarOpen,
-    currentPath,
-    isMinimalLayout,
-    persistNavCollapsed,
-    setChatSidebarOpen,
-  ]);
 
   // When switching to mobile, always collapse; restore saved preference on desktop
   useEffect(() => {
@@ -222,13 +198,6 @@ export default function MainLayout() {
               onToggle={toggleCollapsed}
               isMobile={isMobile}
             />
-            {!isMobile && (
-              <RailEdgeControl
-                expanded={!collapsed}
-                onToggle={handleNavRailToggle}
-                side="end"
-              />
-            )}
           </div>
 
           {isChatRoute && !isMinimalLayout && (

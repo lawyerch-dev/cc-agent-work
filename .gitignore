@@ -103,6 +103,13 @@ scripts/dev-local-link.sh
 # Local agent planning docs (not for upstream)
 docs/superpowers/
 
+# Local UI verification screenshots at repo root (not project source)
+/after.png
+/final.png
+/octop-top.png
+/sidebar-full.png
+/sidebar-now.png
+
 # Local agent tooling / plugin-installed skills (not project source)
 .agent/
 .claude/
