@@ -799,7 +799,7 @@
       "emptyGuideStepWhat": "什么是团队？",
       "emptyGuideStepWhatDetail": "团队由一名主持员工调度至少两名成员。简单问题主管可以直接答；需要专业工作时会派给合适的成员。",
       "emptyGuideStepHow": "怎么创建",
-      "emptyGuideStepHowDetail": "先在「我的员工」里准备至少两名员工，再选择成员（自己的或分享来的）和主管模型。",
+      "emptyGuideStepHowDetail": "先准备成员（自己的或分享来的），再指定主管模型；成员可稍后添加。",
       "emptyGuideStepChat": "怎么聊天",
       "emptyGuideStepChatDetail": "从侧栏进入团队聊天。主管负责调度，成员气泡会出现在同一房间。",
       "emptyMembersHint": "可先创建团队，稍后再添加成员。",

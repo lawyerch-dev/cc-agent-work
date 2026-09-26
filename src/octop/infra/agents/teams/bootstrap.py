@@ -26,7 +26,7 @@ async def create_team_from_template(
     loc = normalize_locale(locale)
     summary = template.summary(loc)
     spec = AgentCreateSpec(
-        name=summary.label,
+        name=_unique_team_name(registry, user_id, summary.label),
         user_id=user_id,
         description=summary.description,
         icon_name="users",
@@ -39,6 +39,17 @@ async def create_team_from_template(
         config={},
     )
     return await registry.create(spec, defer_bootstrap=True)
+
+
+def _unique_team_name(registry: Any, user_id: int, base: str) -> str:
+    """Same-template teams may coexist; suffix the label when the name is taken."""
+    names = {row.name for row in registry.list_agents(user_id)}
+    if base not in names:
+        return base
+    suffix = 2
+    while f"{base} {suffix}" in names:
+        suffix += 1
+    return f"{base} {suffix}"
 
 
 async def bootstrap_default_teams(
@@ -54,13 +65,15 @@ async def bootstrap_default_teams(
         return []
     teams = getattr(registry, "teams", None)
     existing: set[str] = set()
+    has_team = False
     for row in registry.list_agents(user_id):
         if getattr(row, "kind", "expert") != TEAM_KIND:
             continue
+        has_team = True
         tid = teams.template_id(row.agent_id) if teams is not None else None
         if tid:
             existing.add(tid)
-    if only_if_empty and existing:
+    if only_if_empty and has_team:
         return []
     created: list[dict[str, Any]] = []
     for summary in catalog.list_summaries(locale or "zh"):

@@ -64,3 +64,18 @@ async def test_unknown_template_raises(tmp_path: Path) -> None:
     with pytest.raises(OctopError) as exc:
         await teams_router.create_team_from_template_endpoint("nope", user=_user(), server=server)
     assert exc.value.code is ErrorCode.TEAM_TEMPLATE_NOT_FOUND
+
+
+@pytest.mark.asyncio
+async def test_second_create_from_same_template_succeeds(tmp_path: Path) -> None:
+    server = _server(tmp_path)
+    user = _user()
+    first = await teams_router.create_team_from_template_endpoint(
+        "finance", user=user, server=server
+    )
+    second = await teams_router.create_team_from_template_endpoint(
+        "finance", user=user, server=server
+    )
+    assert first["name"] == "财务部"
+    assert second["name"] == "财务部 2"
+    assert first["template_id"] == second["template_id"] == "finance"

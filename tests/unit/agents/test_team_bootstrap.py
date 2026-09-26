@@ -41,3 +41,40 @@ async def test_creates_then_backfills(tmp_path: Path) -> None:
     assert await bootstrap_default_teams(registry, catalog, user_id=1, only_if_empty=True) == []
     # all present → backfill no-op
     assert await bootstrap_default_teams(registry, catalog, user_id=1) == []
+
+
+async def _manual_team(registry: AgentManager, name: str) -> None:
+    from octop.infra.agents.manager import AgentCreateSpec
+    from octop.infra.agents.teams.service import TEAM_TEMPLATE_NAME
+
+    await registry.create(
+        AgentCreateSpec(
+            name=name,
+            user_id=1,
+            kind="team",
+            template_name=TEAM_TEMPLATE_NAME,
+            member_ids=[],
+        ),
+        defer_bootstrap=True,
+    )
+
+
+@pytest.mark.asyncio
+async def test_only_if_empty_respects_manual_team(tmp_path: Path) -> None:
+    registry = _registry(tmp_path)
+    catalog = TeamCatalog(default_library_root())
+    catalog.refresh()
+    await _manual_team(registry, "财务部")
+    assert await bootstrap_default_teams(registry, catalog, user_id=1, only_if_empty=True) == []
+
+
+@pytest.mark.asyncio
+async def test_backfill_suffixes_when_name_taken(tmp_path: Path) -> None:
+    registry = _registry(tmp_path)
+    catalog = TeamCatalog(default_library_root())
+    catalog.refresh()
+    await _manual_team(registry, "财务部")
+    created = await bootstrap_default_teams(registry, catalog, user_id=1)
+    assert {c["template_id"] for c in created} == EXPECTED
+    finance = next(c for c in created if c["template_id"] == "finance")
+    assert finance["name"] == "财务部 2"

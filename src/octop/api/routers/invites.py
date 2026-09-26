@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from fastapi import APIRouter, Depends, Request
@@ -23,6 +24,8 @@ from octop.infra.utils.locale import resolve_request_locale
 
 admin_router = APIRouter()
 public_router = APIRouter()
+
+logger = logging.getLogger(__name__)
 
 
 def _service(server: Any) -> InviteService:
@@ -148,13 +151,16 @@ async def redeem_invite(
     from octop.infra.agents.teams.bootstrap import bootstrap_default_teams
 
     if server.app_runtime is not None:
-        await bootstrap_default_teams(
-            server.app_runtime.agent_registry,
-            getattr(server, "team_catalog", None),
-            user_id=user.id,
-            locale=user.locale,
-            only_if_empty=True,
-        )
+        try:
+            await bootstrap_default_teams(
+                server.app_runtime.agent_registry,
+                getattr(server, "team_catalog", None),
+                user_id=user.id,
+                locale=user.locale,
+                only_if_empty=True,
+            )
+        except Exception as exc:  # user creation must still succeed
+            logger.warning("could not auto-create default teams: %s", exc)
     secret = server.services.secret_repo.get("jwt")
     ttl = server.services.config.access_token_ttl_seconds
     token = sign_token(
