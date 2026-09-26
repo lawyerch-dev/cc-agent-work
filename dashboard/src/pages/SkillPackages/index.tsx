@@ -16,7 +16,6 @@ import { message } from "@/utils/antdMessage";
 import {
   ChevronLeft,
   Download,
-  Folder,
   LayoutGrid,
   List as ListIcon,
   MoreHorizontal,
@@ -656,15 +655,38 @@ export default function SkillPackagesPage() {
     </div>
   );
 
+  const skillsViewToggle = (
+    <Segmented
+      size="small"
+      value={viewMode}
+      onChange={(value) => setViewMode(value === "table" ? "table" : "card")}
+      options={[
+        {
+          value: "card",
+          label: (
+            <span className={skillStyles.viewModeLabel}>
+              <LayoutGrid size={14} />
+              {t("experts.viewCard")}
+            </span>
+          ),
+        },
+        {
+          value: "table",
+          label: (
+            <span className={skillStyles.viewModeLabel}>
+              <ListIcon size={14} />
+              {t("experts.viewTable")}
+            </span>
+          ),
+        },
+      ]}
+    />
+  );
+
   const libraryToolbar = (
     <div className={`${skillStyles.gridToolbar} ${styles.skillsToolbar}`}>
       <div className={styles.breadcrumb}>
-        {rootMode ? (
-          <span className={styles.breadcrumbRoot}>
-            <Folder size={14} />
-            {t("skillPackages.title")}
-          </span>
-        ) : (
+        {!rootMode && (
           <>
             <button
               type="button"
@@ -682,33 +704,6 @@ export default function SkillPackagesPage() {
         )}
       </div>
       <div className={skillStyles.gridToolbarRight}>
-        <Segmented
-          size="small"
-          value={viewMode}
-          onChange={(value) =>
-            setViewMode(value === "table" ? "table" : "card")
-          }
-          options={[
-            {
-              value: "card",
-              label: (
-                <span className={skillStyles.viewModeLabel}>
-                  <LayoutGrid size={14} />
-                  {t("experts.viewCard")}
-                </span>
-              ),
-            },
-            {
-              value: "table",
-              label: (
-                <span className={skillStyles.viewModeLabel}>
-                  <ListIcon size={14} />
-                  {t("experts.viewTable")}
-                </span>
-              ),
-            },
-          ]}
-        />
         <Tooltip title={t("common.refresh")}>
           <button
             type="button"
@@ -784,6 +779,7 @@ export default function SkillPackagesPage() {
           <div className={styles.sectionTitle}>
             {t("skillPackages.rootSkills")}
             <span className={styles.sectionCount}>{allSkills.length}</span>
+            <span className={styles.sectionActions}>{skillsViewToggle}</span>
           </div>
           {allSkills.length === 0 ? (
             <EmptyState
@@ -801,16 +797,25 @@ export default function SkillPackagesPage() {
     )
   ) : detailLoading && !selected ? (
     <CardSkeleton count={6} />
-  ) : skills.length === 0 ? (
-    <EmptyState
-      variant="mascot"
-      title={t("skillPackages.emptySkills")}
-      description={t("skillPackages.subtitle")}
-      actionLabel={canMutate ? t("skillPackages.createSkill") : undefined}
-      onAction={canMutate ? () => void openCreateSkill() : undefined}
-    />
   ) : (
-    skillCards(skills)
+    <div className={styles.sectionBlock}>
+      <div className={styles.sectionTitle}>
+        {t("skillPackages.rootSkills")}
+        <span className={styles.sectionCount}>{skills.length}</span>
+        <span className={styles.sectionActions}>{skillsViewToggle}</span>
+      </div>
+      {skills.length === 0 ? (
+        <EmptyState
+          variant="mascot"
+          title={t("skillPackages.emptySkills")}
+          description={t("skillPackages.subtitle")}
+          actionLabel={canMutate ? t("skillPackages.createSkill") : undefined}
+          onAction={canMutate ? () => void openCreateSkill() : undefined}
+        />
+      ) : (
+        skillCards(skills)
+      )}
+    </div>
   );
 
   const showEmptyGuide = !loading && packages.length === 0;
