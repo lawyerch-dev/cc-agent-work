@@ -794,6 +794,14 @@ export default function ChatInputActionsRow({
     renderMobileOverflowMenu()
   );
 
+  const newChatButton = (
+    <Tooltip title={t("chatWelcome.newChat")} mouseEnterDelay={0.4}>
+      <button className={styles.newChatBtn} onClick={onNewChat} type="button">
+        <MessageSquarePlus size={16} strokeWidth={1.75} />
+      </button>
+    </Tooltip>
+  );
+
   const renderSecondaryActions = () => {
     if (useCompactControls) {
       const modelButton = (
@@ -827,6 +835,7 @@ export default function ChatInputActionsRow({
 
       return (
         <>
+          {newChatButton}
           {onConversationModeChange && (
             <ConversationModePicker
               conversationMode={conversationMode}
@@ -924,6 +933,7 @@ export default function ChatInputActionsRow({
 
     return (
       <>
+        {newChatButton}
         {onConversationModeChange && (
           <ConversationModePicker
             conversationMode={conversationMode}
@@ -1187,48 +1197,23 @@ export default function ChatInputActionsRow({
           selectedConnectors={selectedConnectors}
           isMobile={isMobile}
         />
-        {/* Desktop: dedicated newChatBtn; mobile: replace polish with new-chat */}
-        {useCompactControls ? (
-          <Tooltip title={t("chatWelcome.newChat")} mouseEnterDelay={0.4}>
+        {/* Desktop keeps the polish button; new chat now lives in the tools row. */}
+        {!useCompactControls && (
+          <Tooltip title={t("chat.polish.tooltip")} mouseEnterDelay={0.4}>
             <button
-              className={styles.newChatBtn}
-              onClick={onNewChat}
+              className={styles.secondaryBtn}
+              onClick={onPolish}
               type="button"
+              disabled={
+                !text.trim() || polishing || isStreaming || disabled || !agentId
+              }
             >
-              <MessageSquarePlus size={16} strokeWidth={1.75} />
+              <Wand2
+                size={16}
+                className={polishing ? styles.spinIcon : undefined}
+              />
             </button>
           </Tooltip>
-        ) : (
-          <>
-            <Tooltip title={t("chatWelcome.newChat")} mouseEnterDelay={0.4}>
-              <button
-                className={styles.newChatBtn}
-                onClick={onNewChat}
-                type="button"
-              >
-                <MessageSquarePlus size={16} strokeWidth={1.75} />
-              </button>
-            </Tooltip>
-            <Tooltip title={t("chat.polish.tooltip")} mouseEnterDelay={0.4}>
-              <button
-                className={styles.secondaryBtn}
-                onClick={onPolish}
-                type="button"
-                disabled={
-                  !text.trim() ||
-                  polishing ||
-                  isStreaming ||
-                  disabled ||
-                  !agentId
-                }
-              >
-                <Wand2
-                  size={16}
-                  className={polishing ? styles.spinIcon : undefined}
-                />
-              </button>
-            </Tooltip>
-          </>
         )}
         <Tooltip
           title={
