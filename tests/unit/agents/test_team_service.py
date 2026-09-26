@@ -71,14 +71,13 @@ def team_env(tmp_path: Path) -> dict[str, object]:
     }
 
 
-def test_validate_members_requires_two(team_env: dict[str, object]) -> None:
+def test_validate_members_allows_empty(team_env: dict[str, object]) -> None:
     teams = team_env["teams"]
     user = team_env["user"]
     assert isinstance(teams, TeamService)
-    with pytest.raises(OctopError) as exc:
-        teams.validate_member_ids(user, ["a"])
-    assert exc.value.code is ErrorCode.TEAM_MEMBERS_TOO_FEW
-    assert TEAM_MIN_MEMBERS == 2
+    assert TEAM_MIN_MEMBERS == 0
+    assert teams.validate_member_ids(user, []) == []
+    assert teams.validate_member_ids(user, ["a"]) == ["a"]
     assert teams.validate_member_ids(user, ["a", "b"]) == ["a", "b"]
 
 
@@ -90,9 +89,6 @@ def test_validate_members_rejects_unusable(team_env: dict[str, object]) -> None:
         teams.validate_member_ids(user, ["a", "other-team", "b", "missing"])
     assert exc.value.code is ErrorCode.TEAM_MEMBER_INVALID
     assert exc.value.details == {"member_agent_ids": ["other-team", "missing"]}
-    with pytest.raises(OctopError) as exc:
-        teams.validate_member_ids(user, ["a"])
-    assert exc.value.code is ErrorCode.TEAM_MEMBERS_TOO_FEW
     assert teams.validate_member_ids(user, ["a", "b"]) == ["a", "b"]
 
 
@@ -190,3 +186,49 @@ async def test_seed_team_template_writes_octop_manifest() -> None:
     data = json.loads(raw.decode("utf-8"))
     assert data["kind"] == "team"
     assert data["members"] == ["a", "b"]
+
+
+@pytest.mark.asyncio
+async def test_seed_team_template_from_dir(tmp_path: Path) -> None:
+    from octop.infra.agents.teams.service import seed_team_template
+
+    tpl = tmp_path / "tpl"
+    tpl.mkdir()
+    (tpl / "AGENTS.md").write_text("dept", encoding="utf-8")
+    (tpl / "manifest.json").write_text(
+        json.dumps({"kind": "team", "members": [], "welcome_message": {"zh": "hi", "en": "hi"}}),
+        encoding="utf-8",
+    )
+    uploaded: dict[str, bytes] = {}
+
+    class _Workspace:
+        async def aupload_many(self, pairs: list[tuple[str, bytes]]) -> None:
+            uploaded.update(pairs)
+
+        async def aread_text(self, rel: str) -> str | None:
+            raw = uploaded.get(rel)
+            return raw.decode("utf-8") if raw is not None else None
+
+    await seed_team_template(
+        _Workspace(), member_ids=[], template_dir=tpl, team_template_id="finance"
+    )
+    assert uploaded["AGENTS.md"] == b"dept"
+    data = json.loads(uploaded[".octop/manifest.json"].decode("utf-8"))
+    assert data["team_template"] == "finance"
+    assert data["members"] == []
+
+
+def test_template_id_reads_manifest(team_env: dict[str, object]) -> None:
+    teams = team_env["teams"]
+    workspace_for = team_env["workspace_for"]
+    assert isinstance(teams, TeamService)
+    workspace_for("host")
+    teams.replace_members("host", [])
+    raw = json.loads(workspace_for("host").read_text(".octop/manifest.json"))
+    raw["team_template"] = "sales"
+    workspace_for("host").write_text(".octop/manifest.json", json.dumps(raw))
+    assert teams.template_id("host") == "sales"
+    host = team_env["agents"].get("host")
+    assert host is not None
+    assert teams.team_payload(host)["template_id"] == "sales"
+    assert teams.team_payload(host)["member_ids"] == []

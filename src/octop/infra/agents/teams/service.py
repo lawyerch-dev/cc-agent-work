@@ -16,7 +16,7 @@ from octop.infra.errors import ErrorCode, OctopError
 TEAM_KIND = "team"
 EXPERT_KIND = "expert"
 TEAM_TEMPLATE_NAME = "team-host"
-TEAM_MIN_MEMBERS = 2
+TEAM_MIN_MEMBERS = 0
 TEAM_AVATAR_URL = "/experts/avatars/team-host.svg"
 TEMPLATE_DIR = Path(__file__).resolve().parent / "template"
 TEAM_MANIFEST_WORKSPACE = ".octop/manifest.json"
@@ -170,6 +170,12 @@ class TeamService:
     def member_ids(self, team_agent_id: str) -> list[str]:
         return _member_ids_from_manifest(self._read_manifest(team_agent_id))
 
+    def template_id(self, team_agent_id: str) -> str | None:
+        """Department template this team was created from, or ``None``."""
+        value = self._read_manifest(team_agent_id).get("team_template")
+        text = str(value).strip() if value else ""
+        return text or None
+
     def visible_member_ids(self, team_agent_id: str) -> list[str]:
         """Persisted roster minus deleted / team-host ids. Does not rewrite disk."""
         out: list[str] = []
@@ -184,7 +190,7 @@ class TeamService:
         """Treat *member_ids* as the complete next roster, not incremental adds.
 
         Missing, unusable, or team-host ids raise ``TEAM_MEMBER_INVALID``.
-        Fewer than ``TEAM_MIN_MEMBERS`` usable experts is ``TEAM_MEMBERS_TOO_FEW``.
+        An empty roster is allowed (teams may be created before members exist).
         """
         seen: set[str] = set()
         out: list[str] = []
@@ -204,12 +210,6 @@ class TeamService:
                 ErrorCode.TEAM_MEMBER_INVALID,
                 "one or more team members cannot be used",
                 details={"member_agent_ids": invalid},
-            )
-        if len(out) < TEAM_MIN_MEMBERS:
-            raise OctopError(
-                ErrorCode.TEAM_MEMBERS_TOO_FEW,
-                f"a team needs at least {TEAM_MIN_MEMBERS} members",
-                details={"min_members": TEAM_MIN_MEMBERS},
             )
         return out
 
@@ -284,6 +284,7 @@ class TeamService:
             "state": row.last_state or "unknown",
             "kind": TEAM_KIND,
             "member_ids": ids,
+            "template_id": self.template_id(row.agent_id),
             "members": [
                 {
                     "agent_id": member.agent_id,
@@ -312,16 +313,19 @@ async def seed_team_template(
     workspace: Any,
     *,
     member_ids: list[str] | None = None,
+    template_dir: Path | None = None,
+    team_template_id: str | None = None,
 ) -> None:
+    source = template_dir or TEMPLATE_DIR
     pairs: list[tuple[str, bytes]] = []
-    if not TEMPLATE_DIR.is_dir():
+    if not source.is_dir():
         return
     roster = _normalize_member_ids(member_ids) if member_ids is not None else None
     if roster is None:
         existing = await _read_workspace_manifest(workspace)
         if existing:
             roster = _member_ids_from_manifest(existing)
-    for path in sorted(TEMPLATE_DIR.iterdir()):
+    for path in sorted(source.iterdir()):
         if not path.is_file() or path.name.startswith("."):
             continue
         if path.name == "manifest.json":
@@ -332,10 +336,9 @@ async def seed_team_template(
             if not isinstance(data, dict):
                 data = {}
             data["kind"] = TEAM_KIND
-            if roster is not None:
-                data["members"] = roster
-            else:
-                data.setdefault("members", [])
+            data["members"] = roster if roster is not None else list(data.get("members") or [])
+            if team_template_id:
+                data["team_template"] = team_template_id
             pairs.append(
                 (
                     TEAM_MANIFEST_WORKSPACE,
