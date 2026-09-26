@@ -18,6 +18,7 @@ from octop.infra.agents.experts.catalog import ExpertCatalog, default_library_ro
 from octop.infra.agents.manager import AgentManager
 from octop.infra.agents.plugins.manager import PluginManager
 from octop.infra.agents.subagents.catalog import SubagentCatalog, default_package_root
+from octop.infra.agents.teams.catalog import TeamCatalog, default_library_root as default_team_library_root
 from octop.infra.cron.manager import CronManager
 from octop.infra.db.factory import open_database, should_defer_control_plane_db
 from octop.infra.db.migrate import run_migrations
@@ -248,6 +249,7 @@ class OctopServer:
         self.app_runtime: AppRuntime | None = None
         self.expert_catalog: ExpertCatalog | None = None
         self.subagent_catalog: SubagentCatalog | None = None
+        self.team_catalog: TeamCatalog | None = None
         self.plugin_manager: PluginManager | None = None
         self.wizard_tokens = WizardTokenStore(ttl_seconds=300)
         self._started = False
@@ -301,6 +303,8 @@ class OctopServer:
         self.expert_catalog.refresh()
         self.subagent_catalog = SubagentCatalog(default_package_root())
         self.subagent_catalog.refresh()
+        self.team_catalog = TeamCatalog(default_team_library_root())
+        self.team_catalog.refresh()
 
         self.plugin_manager = PluginManager(
             plugins_dir=self.paths.plugins_dir,
@@ -375,6 +379,7 @@ class OctopServer:
             paths=self.paths,
             config=config,
             expert_catalog=self.expert_catalog,
+            team_catalog=self.team_catalog,
             plugin_manager=self.plugin_manager,
         )
 

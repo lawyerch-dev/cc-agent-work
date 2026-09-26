@@ -24,3 +24,10 @@ def test_unknown_id_is_none() -> None:
     cat = TeamCatalog(default_library_root())
     cat.refresh()
     assert cat.get("nope") is None
+
+
+def test_server_exposes_team_catalog() -> None:
+    from octop.infra.server import OctopServer
+
+    server = OctopServer()
+    assert hasattr(server, "team_catalog")
