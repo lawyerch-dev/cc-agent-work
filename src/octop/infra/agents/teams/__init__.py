@@ -1,5 +1,6 @@
 """Expert-team hosts and member roster."""
 
+from octop.infra.agents.teams.bootstrap import bootstrap_default_teams, create_team_from_template
 from octop.infra.agents.teams.catalog import (
     TeamCatalog,
     TeamTemplate,
@@ -44,6 +45,8 @@ __all__ = [
     "TeamTemplateRole",
     "TeamTemplateSummary",
     "agent_kind",
+    "bootstrap_default_teams",
+    "create_team_from_template",
     "default_library_root",
     "host_system_prompt",
     "host_tools_disabled",
