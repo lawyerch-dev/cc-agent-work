@@ -2170,3 +2170,38 @@ async def test_stream_and_resume_hitl_serialize_per_thread(
     await turn
     await resume
     assert peak == 1
+
+
+@pytest.mark.asyncio
+async def test_seed_team_for_row_uses_department_template(
+    manager: AgentManager, tmp_path: Path
+) -> None:
+    from octop.infra.agents.manager import AgentCreateSpec
+    from octop.infra.agents.teams.catalog import TeamCatalog
+
+    lib = tmp_path / "lib" / "finance"
+    lib.mkdir(parents=True)
+    (lib / "AGENTS.md").write_text("finance-dept", encoding="utf-8")
+    (lib / "manifest.json").write_text(
+        '{"kind":"team","members":[],"welcome_message":{"zh":"hi","en":"hi"}}',
+        encoding="utf-8",
+    )
+    catalog = TeamCatalog(tmp_path / "lib")
+    catalog.refresh()
+    manager._team_catalog = catalog
+
+    agent_id = "AGT_T4"
+    ws = manager._paths.ensure_agent_workspace(agent_id)
+    row = _row(agent_id=agent_id, config_json=json.dumps({"backend": _fs_backend(ws)}))
+    spec = AgentCreateSpec(
+        name="财务部",
+        user_id=1,
+        kind="team",
+        team_template_id="finance",
+        member_ids=[],
+    )
+    await manager._seed_team_for_row(row, spec)
+    workspace = manager._backend_workspace_for_row(row)
+    assert workspace.read_text("AGENTS.md") == "finance-dept"
+    manifest = json.loads(workspace.read_text(".octop/manifest.json") or "{}")
+    assert manifest.get("team_template") == "finance"

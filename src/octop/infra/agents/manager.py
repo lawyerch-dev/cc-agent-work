@@ -85,6 +85,7 @@ if TYPE_CHECKING:
     from octop.config import OctopConfig
     from octop.infra.agents.experts.catalog import ExpertCatalog
     from octop.infra.agents.plugins.manager import PluginManager
+    from octop.infra.agents.teams.catalog import TeamCatalog
     from octop.infra.cron.manager import CronManager
     from octop.infra.db.repos.agents import AgentRow
     from octop.infra.db.services import RepoBundle
@@ -308,6 +309,7 @@ class AgentCreateSpec:
     config: dict[str, Any] = field(default_factory=dict)
     kind: str = "expert"
     member_ids: list[str] = field(default_factory=list)
+    team_template_id: str | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -345,6 +347,7 @@ class AgentManager:
         paths: PathLayout,
         config: OctopConfig | None = None,
         expert_catalog: ExpertCatalog | None = None,
+        team_catalog: TeamCatalog | None = None,
         plugin_manager: PluginManager | None = None,
     ) -> None:
         self._repos = repos
@@ -353,6 +356,7 @@ class AgentManager:
 
         self._config = config or _OctopConfig()
         self._expert_catalog = expert_catalog
+        self._team_catalog = team_catalog
         self._plugin_manager = plugin_manager
         self._cron_manager: CronManager | None = None
         self._proactive_scheduler: ProactiveCareScheduler | None = None
@@ -650,14 +654,8 @@ class AgentManager:
                 row = self._repos.agent_repo.get(agent_id)
                 assert row is not None
             if spec.kind == "team":
-                from octop.infra.agents.teams.service import seed_team_template
-
                 try:
-                    workspace = self._backend_workspace_for_row(row)
-                    await seed_team_template(
-                        workspace,
-                        member_ids=list(spec.member_ids or []),
-                    )
+                    await self._seed_team_for_row(row, spec)
                 except Exception:
                     await self._abort_incomplete_create(agent_id)
                     raise
@@ -689,13 +687,7 @@ class AgentManager:
                     raise
                 if agent is not None and spec.kind == "team":
                     if self._spec_is_opensandbox(self._backend_spec_for_row(row)):
-                        from octop.infra.agents.teams.service import seed_team_template
-
-                        workspace = self._backend_workspace_for_row(row)
-                        await seed_team_template(
-                            workspace,
-                            member_ids=list(spec.member_ids or []),
-                        )
+                        await self._seed_team_for_row(row, spec)
                 elif agent is not None and spec.template_name:
                     if self._spec_is_opensandbox(self._backend_spec_for_row(row)):
                         await self._seed_expert_template(row, spec.template_name)
@@ -2706,6 +2698,21 @@ class AgentManager:
             resolve_backend(backend, workspace_dir=workspace_dir),
             workspace_dir,
             system_files_path=system_files_path_from_config(cfg),
+        )
+
+    async def _seed_team_for_row(self, row: AgentRow, spec: AgentCreateSpec) -> None:
+        """Seed a team host workspace, from a named department template when set."""
+        from octop.infra.agents.teams.service import seed_team_template  # noqa: PLC0415
+
+        template_dir = None
+        if spec.team_template_id and self._team_catalog is not None:
+            template_dir = self._team_catalog.template_dir(spec.team_template_id)
+        workspace = self._backend_workspace_for_row(row)
+        await seed_team_template(
+            workspace,
+            member_ids=list(spec.member_ids or []),
+            template_dir=template_dir,
+            team_template_id=spec.team_template_id,
         )
 
     async def _seed_expert_template(self, row: AgentRow, template_name: str) -> None:
