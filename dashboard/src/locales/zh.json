@@ -185,6 +185,7 @@
     "CAPTCHA_FAILED": "验证码校验失败，请重试。",
     "CONFIG_FILE_CORRUPT": "无法更新 {{path}}：该文件不是合法 JSON（{{detail}}）。请修正语法后重试；现有配置未被改动。",
     "TEAM_NOT_FOUND": "未找到该团队。",
+    "TEAM_TEMPLATE_NOT_FOUND": "未找到该团队模板。",
     "TEAM_MEMBERS_TOO_FEW": "团队至少需要两名成员。",
     "TEAM_MEMBER_INVALID": "当前选中的编制无效。",
     "TEAM_MEMBER_BUSY": "该员工有进行中的团队任务，请等结束后再改编制或删除。",
