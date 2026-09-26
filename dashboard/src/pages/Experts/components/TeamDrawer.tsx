@@ -62,6 +62,14 @@ export default function TeamDrawer({
     () => mergeTeamPickerExperts(experts, rosterExtras),
     [experts, rosterExtras],
   );
+  const watchedMembers = Form.useWatch<string[]>("member_ids", form) ?? [];
+  const memberCount = selectedRosterIds(watchedMembers, pickerExperts).length;
+  const memberHint =
+    memberCount === 1
+      ? t("experts.teams.membersRecommend")
+      : memberCount === 0
+        ? t("experts.teams.emptyMembersHint")
+        : t("experts.teams.membersHint");
 
   useEffect(() => {
     if (!open) {
@@ -260,16 +268,7 @@ export default function TeamDrawer({
         <Form.Item
           name="member_ids"
           label={t("experts.teams.members")}
-          extra={t("experts.teams.membersHint")}
-          rules={[
-            {
-              validator: async (_, value: string[]) => {
-                if (selectedRosterIds(value, pickerExperts).length < 2) {
-                  throw new Error(t("experts.teams.membersMin"));
-                }
-              },
-            },
-          ]}
+          extra={memberHint}
         >
           <TeamMemberPicker experts={pickerExperts} />
         </Form.Item>
