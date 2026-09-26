@@ -771,6 +771,7 @@
     "teams": {
       "betaBadge": "Beta",
       "create": "Create team",
+      "createOne": "Create a single team",
       "createTitle": "Create team",
       "editTitle": "Edit team",
       "name": "Team name",

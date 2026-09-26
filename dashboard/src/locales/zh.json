@@ -771,6 +771,7 @@
     "teams": {
       "betaBadge": "Beta",
       "create": "创建团队",
+      "createOne": "创建单个团队",
       "createTitle": "创建团队",
       "editTitle": "编辑团队",
       "name": "团队名称",

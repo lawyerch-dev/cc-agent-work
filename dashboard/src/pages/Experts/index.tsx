@@ -746,7 +746,7 @@ export default function ExpertsPage() {
             type="button"
             onClick={() => setTeamDrawer({ mode: "create" })}
           >
-            {t("experts.teams.create")}
+            {t("experts.teams.createOne")}
           </button>
         </div>
       </div>
