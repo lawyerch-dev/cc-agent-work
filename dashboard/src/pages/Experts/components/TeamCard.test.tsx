@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { TeamCard } from "./TeamCard";
@@ -43,5 +43,25 @@ describe("TeamCard", () => {
     expect(
       screen.getByText("experts.teams.pendingMembers"),
     ).toBeInTheDocument();
+  });
+
+  it("toggles selection on card click in select mode", () => {
+    const onToggleSelect = vi.fn();
+    render(
+      <TeamCard
+        agent={agent}
+        experts={[]}
+        onEdit={() => {}}
+        onDeleted={() => {}}
+        onStateChange={() => {}}
+        selectMode
+        selected={false}
+        onToggleSelect={onToggleSelect}
+      />,
+    );
+    const card = screen.getByRole("button", { name: /财务部/ });
+    fireEvent.click(card);
+    expect(onToggleSelect).toHaveBeenCalledWith("t1");
+    expect(card).toHaveAttribute("aria-pressed", "false");
   });
 });

@@ -21,6 +21,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Spin, Tabs, Segmented, Tooltip } from "antd";
 import { message } from "@/utils/antdMessage";
+import { modal } from "@/utils/antdModal";
 
 import {
   BookOpen,
@@ -30,6 +31,7 @@ import {
   Plus,
   RefreshCw,
   Store,
+  Trash2,
   Users,
 } from "lucide-react";
 import PageShell from "../../layouts/PageShell";
@@ -54,7 +56,6 @@ import CreateFromExpertDrawer, {
 } from "./components/CreateFromExpertDrawer";
 import TeamDrawer from "./components/TeamDrawer";
 import TeamTemplateDrawer from "./components/TeamTemplateDrawer";
-import TeamOrderDrawer from "./components/TeamOrderDrawer";
 import SortableTeamItem from "./components/SortableTeamItem";
 import { sortTeams } from "./teamOrder";
 import { teamsApi, type TeamRecord } from "../../api/modules/teams";
@@ -232,7 +233,6 @@ export default function ExpertsPage() {
   );
 
   const [teamOrder, setTeamOrder] = useState<string[]>([]);
-  const [orderDrawerOpen, setOrderDrawerOpen] = useState(false);
   const sortedTeamAgents = useMemo(
     () => sortTeams(teamAgents, teamOrder),
     [teamAgents, teamOrder],
@@ -338,6 +338,81 @@ export default function ExpertsPage() {
       message.error(apiErrorMessage(err, t("experts.teams.seedFailed"), t));
     }
   }, [refreshAgents, t]);
+
+  // ── Team batch select / delete ─────────────────────────────────
+  const [teamSelectMode, setTeamSelectMode] = useState(false);
+  const [selectedTeamIds, setSelectedTeamIds] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const [batchDeleting, setBatchDeleting] = useState(false);
+
+  const toggleTeamSelect = useCallback((agentId: string) => {
+    setSelectedTeamIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(agentId)) next.delete(agentId);
+      else next.add(agentId);
+      return next;
+    });
+  }, []);
+
+  const exitTeamSelectMode = useCallback(() => {
+    setTeamSelectMode(false);
+    setSelectedTeamIds(new Set());
+  }, []);
+
+  const handleTeamBatchDelete = useCallback(() => {
+    const ids = [...selectedTeamIds];
+    if (ids.length === 0 || batchDeleting) return;
+    modal.confirm({
+      title: t("experts.teams.batchDeleteTitle", { count: ids.length }),
+      content: t("experts.teams.batchDeleteHint"),
+      okText: t("common.delete", "Delete"),
+      okButtonProps: { danger: true },
+      cancelText: t("common.cancel"),
+      onOk: async () => {
+        setBatchDeleting(true);
+        let success = 0;
+        let failed = 0;
+        for (const id of ids) {
+          try {
+            await teamsApi.remove(id);
+            success += 1;
+          } catch {
+            failed += 1;
+          }
+        }
+        setBatchDeleting(false);
+        setLocalAgents((prev) => {
+          const removed = new Set(ids);
+          return prev
+            .filter((item) => !removed.has(item.agent_id))
+            .map((item) =>
+              item.kind === "team" &&
+              item.member_ids?.some((id) => removed.has(id))
+                ? {
+                    ...item,
+                    member_ids: item.member_ids.filter(
+                      (id) => !removed.has(id),
+                    ),
+                  }
+                : item,
+            );
+        });
+        setSelectedTeamIds(new Set());
+        if (failed === 0) {
+          message.success(
+            t("experts.teams.batchDeleteDone", { count: success }),
+          );
+          setTeamSelectMode(false);
+        } else {
+          message.warning(
+            t("experts.teams.batchDeletePartial", { success, failed }),
+          );
+        }
+        void refreshAgents({ silent: true, force: true });
+      },
+    });
+  }, [selectedTeamIds, batchDeleting, t, refreshAgents]);
 
   const handleEditSaved = useCallback(
     (
@@ -590,6 +665,9 @@ export default function ExpertsPage() {
   ]);
 
   const teamsContent = useMemo(() => {
+    const selectedCount = selectedTeamIds.size;
+    const allSelected =
+      teamAgents.length > 0 && selectedCount === teamAgents.length;
     const teamToolbar = (
       <div className={styles.gridToolbar}>
         <span className={styles.gridCount}>
@@ -599,6 +677,56 @@ export default function ExpertsPage() {
         </span>
         <div className={styles.gridToolbarRight}>
           {refreshButton}
+          {teamAgents.length > 0 &&
+            (teamSelectMode ? (
+              <div className={styles.teamBatchBar}>
+                <span className={styles.teamBatchCount}>
+                  {t("experts.teams.batchSelected", { count: selectedCount })}
+                </span>
+                <button
+                  className={styles.toolbarBtn}
+                  type="button"
+                  onClick={() =>
+                    setSelectedTeamIds(
+                      allSelected
+                        ? new Set()
+                        : new Set(teamAgents.map((item) => item.agent_id)),
+                    )
+                  }
+                >
+                  {allSelected
+                    ? t("experts.teams.batchClear")
+                    : t("experts.teams.batchSelectAll")}
+                </button>
+                <button
+                  className={styles.toolbarBtnDanger}
+                  type="button"
+                  disabled={selectedCount === 0 || batchDeleting}
+                  onClick={() => void handleTeamBatchDelete()}
+                >
+                  <Trash2 size={13} />
+                  {t("experts.teams.batchDelete", { count: selectedCount })}
+                </button>
+                <button
+                  className={styles.toolbarBtn}
+                  type="button"
+                  onClick={exitTeamSelectMode}
+                >
+                  {t("experts.teams.batchExit")}
+                </button>
+              </div>
+            ) : (
+              <button
+                className={styles.toolbarBtn}
+                type="button"
+                onClick={() => {
+                  setTeamSelectMode(true);
+                  setSelectedTeamIds(new Set());
+                }}
+              >
+                {t("experts.teams.batchSelect")}
+              </button>
+            ))}
           <button
             className={styles.toolbarBtn}
             type="button"
@@ -613,15 +741,6 @@ export default function ExpertsPage() {
           >
             {t("experts.teams.seedDefaults")}
           </button>
-          {teamAgents.length > 1 ? (
-            <button
-              className={styles.toolbarBtn}
-              type="button"
-              onClick={() => setOrderDrawerOpen(true)}
-            >
-              {t("experts.teams.sort")}
-            </button>
-          ) : null}
           <button
             className={styles.toolbarBtn}
             type="button"
@@ -678,13 +797,21 @@ export default function ExpertsPage() {
           <SortableContext
             items={sortedTeamAgents.map((item) => item.agent_id)}
             strategy={rectSortingStrategy}
+            disabled={teamSelectMode}
           >
             <div className={styles.cardGrid}>
               {sortedTeamAgents.map((agent) => (
-                <SortableTeamItem key={agent.agent_id} id={agent.agent_id}>
+                <SortableTeamItem
+                  key={agent.agent_id}
+                  id={agent.agent_id}
+                  disabled={teamSelectMode}
+                >
                   <TeamCard
                     agent={agent}
                     experts={pickableExperts}
+                    selectMode={teamSelectMode}
+                    selected={selectedTeamIds.has(agent.agent_id)}
+                    onToggleSelect={toggleTeamSelect}
                     onEdit={(id) => {
                       const row = sortedTeamAgents.find(
                         (item) => item.agent_id === id,
@@ -702,17 +829,23 @@ export default function ExpertsPage() {
       </>
     );
   }, [
+    batchDeleting,
+    exitTeamSelectMode,
     handleDeleted,
     handleSeedDefaults,
     handleStateChange,
+    handleTeamBatchDelete,
     handleTeamDragEnd,
     isMobile,
     pickableExperts,
     refreshButton,
+    selectedTeamIds,
     sensors,
     sortedTeamAgents,
     t,
     teamAgents,
+    teamSelectMode,
+    toggleTeamSelect,
   ]);
 
   const libraryContent = useMemo(() => {
@@ -884,13 +1017,6 @@ export default function ExpertsPage() {
         lang={lang}
         onClose={() => setCreateSource(null)}
         onCreated={handleCreated}
-      />
-
-      <TeamOrderDrawer
-        open={orderDrawerOpen}
-        teams={sortedTeamAgents}
-        onClose={() => setOrderDrawerOpen(false)}
-        onSave={saveTeamOrder}
       />
 
       <TeamTemplateDrawer

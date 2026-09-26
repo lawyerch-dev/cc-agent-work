@@ -1,7 +1,7 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { Dropdown, Popconfirm, Switch, Tooltip } from "antd";
+import { Checkbox, Dropdown, Popconfirm, Switch, Tooltip } from "antd";
 import type { MenuProps } from "antd";
 import { message } from "@/utils/antdMessage";
 
@@ -62,6 +62,10 @@ export interface TeamCardProps {
   onEdit: (agentId: string) => void;
   onDeleted: (agentId: string) => void;
   onStateChange: (agentId: string, newState: string) => void;
+  /** When true, show a selection checkbox and allow toggling selection. */
+  selectMode?: boolean;
+  selected?: boolean;
+  onToggleSelect?: (agentId: string) => void;
 }
 
 interface MemberChip {
@@ -98,6 +102,9 @@ export const TeamCard = memo(function TeamCard({
   onEdit,
   onDeleted,
   onStateChange,
+  selectMode = false,
+  selected = false,
+  onToggleSelect,
 }: TeamCardProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -220,9 +227,20 @@ export const TeamCard = memo(function TeamCard({
     else message.error(t("common.copyFailed"));
   }, [agent.team_code, agent.agent_id, t]);
 
+  const handleToggleSelect = useCallback(() => {
+    onToggleSelect?.(agent.agent_id);
+  }, [onToggleSelect, agent.agent_id]);
+
   return (
     <>
-      <div className={`${styles.agentCard2} ${styles.teamCard}`}>
+      <div
+        className={`${styles.agentCard2} ${styles.teamCard}${
+          selectMode ? ` ${styles.teamCardSelectable}` : ""
+        }${selected ? ` ${styles.teamCardSelected}` : ""}`}
+        onClick={selectMode && onToggleSelect ? handleToggleSelect : undefined}
+        role={selectMode ? "button" : undefined}
+        aria-pressed={selectMode ? selected : undefined}
+      >
         {ordinal ? (
           <span className={styles.teamCardOrdinal}>{ordinal}</span>
         ) : null}
@@ -265,14 +283,21 @@ export const TeamCard = memo(function TeamCard({
             </div>
           </div>
 
-          <div className={styles.agentCard2HeaderActions}>
-            <Switch
-              size="small"
-              checked={switchChecked}
-              loading={isTransient || actionLoading}
-              onChange={(checked) => void handleToggle(checked)}
-              className={styles.agentCard2Switch}
-            />
+          <div
+            className={styles.agentCard2HeaderActions}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {selectMode ? (
+              <Checkbox checked={selected} onChange={handleToggleSelect} />
+            ) : (
+              <Switch
+                size="small"
+                checked={switchChecked}
+                loading={isTransient || actionLoading}
+                onChange={(checked) => void handleToggle(checked)}
+                className={styles.agentCard2Switch}
+              />
+            )}
           </div>
         </div>
 
@@ -282,7 +307,10 @@ export const TeamCard = memo(function TeamCard({
           </p>
         ) : null}
 
-        <div className={styles.teamCardRoster}>
+        <div
+          className={styles.teamCardRoster}
+          onClick={(e) => e.stopPropagation()}
+        >
           <span className={styles.teamCardRosterLabel}>
             {t("experts.teams.memberAvatars")}
           </span>
@@ -348,7 +376,10 @@ export const TeamCard = memo(function TeamCard({
           </div>
         )}
 
-        <div className={styles.agentCard2Footer}>
+        <div
+          className={styles.agentCard2Footer}
+          onClick={(e) => e.stopPropagation()}
+        >
           <Tooltip
             title={
               chatReady

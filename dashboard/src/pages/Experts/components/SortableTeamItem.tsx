@@ -5,12 +5,15 @@ import { CSS } from "@dnd-kit/utilities";
 interface SortableTeamItemProps {
   id: string;
   children: ReactNode;
+  /** Disable dragging (e.g. while batch-selecting). */
+  disabled?: boolean;
 }
 
 /** Grid cell wrapper that makes a team card draggable. */
 export default function SortableTeamItem({
   id,
   children,
+  disabled = false,
 }: SortableTeamItemProps) {
   const {
     attributes,
@@ -19,7 +22,7 @@ export default function SortableTeamItem({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id });
+  } = useSortable({ id, disabled });
   return (
     <div
       ref={setNodeRef}

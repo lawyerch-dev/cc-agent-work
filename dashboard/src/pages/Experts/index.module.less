@@ -351,7 +351,8 @@
   min-height: 0;
 
   .agentCard2Header {
-    padding: 20px 16px 12px;
+    /* leave room for the corner ordinal so it never covers the avatar */
+    padding: 28px 16px 12px;
     align-items: center;
   }
 
@@ -405,22 +406,31 @@
 
 .teamCardOrdinal {
   position: absolute;
-  top: 8px;
-  left: 8px;
+  top: 0;
+  left: 0;
   z-index: 1;
-  min-width: 30px;
-  height: 22px;
+  min-width: 28px;
+  height: 18px;
   padding: 0 6px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
+  border-radius: 0 0 8px 0;
   background: var(--fn-color-brand-light, #eef2ff);
   color: var(--fn-color-brand);
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1;
+  pointer-events: none;
+}
+
+/* Template drawer card — corner ordinal + room so it never covers the title. */
+.templateCard {
+  position: relative;
+  border: 1px solid var(--fn-border, #eee);
+  border-radius: 8px;
+  padding: 28px 16px 16px;
 }
 
 .teamCardId {
@@ -499,6 +509,59 @@
   font-size: 11px;
   color: var(--fn-text-tertiary);
   flex-shrink: 0;
+}
+
+.teamCardSelectable {
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--fn-color-brand) 45%, transparent);
+  }
+}
+
+.teamCardSelected {
+  border-color: var(--fn-color-brand) !important;
+  box-shadow: 0 0 0 1px var(--fn-color-brand);
+}
+
+.toolbarBtnDanger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid #ff4d4f;
+  background: transparent;
+  color: #ff4d4f;
+  border-radius: var(--fn-radius-md);
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover:not(:disabled) {
+    background: #fff1f0;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+.teamBatchBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.teamBatchCount {
+  font-size: 12px;
+  color: var(--fn-text-tertiary);
+  white-space: nowrap;
 }
 
 .memberPicker {
