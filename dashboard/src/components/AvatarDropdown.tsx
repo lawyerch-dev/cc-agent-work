@@ -24,6 +24,7 @@ import {
   Github,
   RefreshCw,
   KeyRound,
+  UserRound,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -77,7 +78,7 @@ interface AvatarDropdownProps {
   placement?: "default" | "sidebar";
   /** When placement is sidebar and true, show avatar only (collapsed rail). */
   compact?: boolean;
-  /** Called before opening settings / password panels (e.g. close mobile nav drawer). */
+  /** Called before opening settings (e.g. close mobile nav drawer). */
   onBeforeOpenSettings?: () => void;
 }
 
@@ -95,7 +96,9 @@ export default function AvatarDropdown({
   const { layoutMode, setLayoutMode } = useLayoutMode();
   const [menuOpen, setMenuOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [passwordOpen, setPasswordOpen] = useState(false);
+  const [settingsTab, setSettingsTab] = useState<"account" | "preferences">(
+    "account",
+  );
   const [saving, setSaving] = useState(false);
   const [ssoProviders, setSsoProviders] = useState<
     { kind: string; display_name: string; enabled: boolean }[]
@@ -142,7 +145,6 @@ export default function AvatarDropdown({
       await authApi.changePassword(values.old_password, values.new_password);
       message.success(t("account.passwordChanged"));
       pwForm.resetFields();
-      setPasswordOpen(false);
     } catch (e) {
       message.error(apiErrorMessage(e, t("account.passwordChangeFailed"), t));
     } finally {
@@ -260,22 +262,16 @@ export default function AvatarDropdown({
     window.setTimeout(open, 0);
   };
 
-  const openSettings = () => {
+  const openSettings = (tab: "account" | "preferences" = "account") => {
     setMenuOpen(false);
     onBeforeOpenSettings?.();
+    setSettingsTab(tab);
     profileForm.setFieldsValue({ display_name: user?.display_name || "" });
+    pwForm.resetFields();
     deferOpen(() => setSettingsOpen(true));
   };
 
-  const openPassword = () => {
-    setMenuOpen(false);
-    onBeforeOpenSettings?.();
-    pwForm.resetFields();
-    deferOpen(() => setPasswordOpen(true));
-  };
-
   const closeSettings = () => setSettingsOpen(false);
-  const closePassword = () => setPasswordOpen(false);
 
   useEffect(() => {
     if (!settingsOpen) return;
@@ -379,14 +375,13 @@ export default function AvatarDropdown({
         <span>{t("account.projectUrl")}</span>
       </a>
 
-      <button type="button" className={styles.menuItem} onClick={openSettings}>
+      <button
+        type="button"
+        className={styles.menuItem}
+        onClick={() => openSettings("account")}
+      >
         <Settings size={16} strokeWidth={1.8} />
         <span>{t("account.settings")}</span>
-      </button>
-
-      <button type="button" className={styles.menuItem} onClick={openPassword}>
-        <KeyRound size={16} strokeWidth={1.8} />
-        <span>{t("account.changePassword")}</span>
       </button>
 
       {userCan(user, "update") && (
@@ -456,36 +451,40 @@ export default function AvatarDropdown({
       </Tooltip>
     );
 
-  const settingsBody = (
-    <div className={styles.settingsBody}>
-      <div className={styles.settingsIdentity}>
-        <Avatar
-          size={44}
-          style={{
-            background: "var(--fn-color-brand)",
-            fontSize: 18,
-            flexShrink: 0,
-          }}
-        >
-          {initials}
-        </Avatar>
-        <div className={styles.settingsIdentityText}>
-          <div className={styles.settingsIdentityName}>
-            <span>{displayName}</span>
-            <Tag
-              color={role === "admin" ? "blue" : "default"}
-              className={styles.roleTag}
-            >
-              {roleLabel}
-            </Tag>
-          </div>
-          {user?.username && (
-            <span className={styles.settingsIdentityHandle}>
-              @{user.username}
-            </span>
-          )}
+  const identityBlock = (
+    <div className={styles.settingsIdentity}>
+      <Avatar
+        size={44}
+        style={{
+          background: "var(--fn-color-brand)",
+          fontSize: 18,
+          flexShrink: 0,
+        }}
+      >
+        {initials}
+      </Avatar>
+      <div className={styles.settingsIdentityText}>
+        <div className={styles.settingsIdentityName}>
+          <span>{displayName}</span>
+          <Tag
+            color={role === "admin" ? "blue" : "default"}
+            className={styles.roleTag}
+          >
+            {roleLabel}
+          </Tag>
         </div>
+        {user?.username && (
+          <span className={styles.settingsIdentityHandle}>
+            @{user.username}
+          </span>
+        )}
       </div>
+    </div>
+  );
+
+  const accountTab = (
+    <div className={styles.settingsBody}>
+      {identityBlock}
 
       <section className={styles.settingsSection}>
         <div className={styles.settingsSectionHead}>
@@ -530,129 +529,8 @@ export default function AvatarDropdown({
       <section className={styles.settingsSection}>
         <div className={styles.settingsSectionHead}>
           <h3 className={styles.settingsSectionTitle}>
-            {t("account.layoutMode")}
+            {t("account.changePassword")}
           </h3>
-          <p className={styles.settingsSectionDesc}>
-            {t("account.layoutModeHint")}
-          </p>
-        </div>
-        <Segmented
-          block
-          value={layoutMode}
-          options={[
-            { label: t("account.layoutClassic"), value: "classic" },
-            { label: t("account.layoutMinimal"), value: "minimal" },
-          ]}
-          onChange={(val) => setLayoutMode(val as LayoutMode)}
-        />
-      </section>
-
-      <Divider className={styles.settingsDivider} />
-
-      <section className={styles.settingsSection}>
-        <div className={styles.settingsSectionHead}>
-          <h3 className={styles.settingsSectionTitle}>
-            {t("account.language")}
-          </h3>
-          <p className={styles.settingsSectionDesc}>
-            {t("account.languageHint")}
-          </p>
-        </div>
-        <Segmented
-          block
-          value={currentLang}
-          options={[
-            { label: t("account.langZh"), value: "zh" },
-            { label: t("account.langEn"), value: "en" },
-          ]}
-          onChange={(val) => handleLocaleChange(val as string)}
-        />
-      </section>
-
-      <Divider className={styles.settingsDivider} />
-
-      <section className={styles.settingsSection}>
-        <div className={styles.settingsSectionHead}>
-          <h3 className={styles.settingsSectionTitle}>
-            {t("account.palette")}
-          </h3>
-          <p className={styles.settingsSectionDesc}>
-            {t("account.paletteHint")}
-          </p>
-        </div>
-        <PaletteSwitcher />
-      </section>
-
-      {ssoRows.length > 0 && (
-        <>
-          <Divider className={styles.settingsDivider} />
-          <section className={styles.settingsSection}>
-            <div className={styles.settingsSectionHead}>
-              <h3 className={styles.settingsSectionTitle}>
-                {t("account.ssoTitle")}
-              </h3>
-              <p className={styles.settingsSectionDesc}>
-                {t("account.ssoHint")}
-              </p>
-            </div>
-            <ul className={styles.ssoList}>
-              {ssoRows.map((provider) => {
-                const name = providerDisplayName(
-                  provider.kind,
-                  provider.display_name,
-                );
-                const linked = linkedKinds.has(provider.kind);
-                const busy = ssoBindingKind === provider.kind;
-                return (
-                  <li key={provider.kind} className={styles.ssoRow}>
-                    <span className={styles.ssoIcon} aria-hidden>
-                      {oauthProviderIcon(provider.kind)}
-                    </span>
-                    <div className={styles.ssoMeta}>
-                      <span className={styles.ssoName}>{name}</span>
-                      <span className={styles.ssoStatus}>
-                        {linked
-                          ? t("account.ssoStatusLinked")
-                          : t("account.ssoStatusUnlinked")}
-                      </span>
-                    </div>
-                    {linked ? (
-                      canUnbindKind(provider.kind) ? (
-                        <Button
-                          size="small"
-                          danger
-                          loading={busy}
-                          disabled={ssoBindingKind !== null && !busy}
-                          onClick={() => void handleUnbindOauth(provider.kind)}
-                        >
-                          {t("account.ssoDisconnect")}
-                        </Button>
-                      ) : null
-                    ) : (
-                      <Button
-                        size="small"
-                        type="primary"
-                        loading={busy}
-                        disabled={ssoBindingKind !== null && !busy}
-                        onClick={() => void handleBindOauth(provider.kind)}
-                      >
-                        {t("account.ssoConnect")}
-                      </Button>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-        </>
-      )}
-    </div>
-  );
-
-  const passwordBody = (
-    <div className={styles.settingsBody}>
-      <section className={styles.settingsSection}>
-        <div className={styles.settingsSectionHead}>
           <p className={styles.settingsSectionDesc}>
             {t("account.changePasswordHint")}
           </p>
@@ -733,6 +611,183 @@ export default function AvatarDropdown({
           </Button>
         </Form>
       </section>
+
+      {ssoRows.length > 0 && (
+        <>
+          <Divider className={styles.settingsDivider} />
+          <section className={styles.settingsSection}>
+            <div className={styles.settingsSectionHead}>
+              <h3 className={styles.settingsSectionTitle}>
+                {t("account.ssoTitle")}
+              </h3>
+              <p className={styles.settingsSectionDesc}>
+                {t("account.ssoHint")}
+              </p>
+            </div>
+            <ul className={styles.ssoList}>
+              {ssoRows.map((provider) => {
+                const name = providerDisplayName(
+                  provider.kind,
+                  provider.display_name,
+                );
+                const linked = linkedKinds.has(provider.kind);
+                const busy = ssoBindingKind === provider.kind;
+                return (
+                  <li key={provider.kind} className={styles.ssoRow}>
+                    <span className={styles.ssoIcon} aria-hidden>
+                      {oauthProviderIcon(provider.kind)}
+                    </span>
+                    <div className={styles.ssoMeta}>
+                      <span className={styles.ssoName}>{name}</span>
+                      <span className={styles.ssoStatus}>
+                        {linked
+                          ? t("account.ssoStatusLinked")
+                          : t("account.ssoStatusUnlinked")}
+                      </span>
+                    </div>
+                    {linked ? (
+                      canUnbindKind(provider.kind) ? (
+                        <Button
+                          size="small"
+                          danger
+                          loading={busy}
+                          disabled={ssoBindingKind !== null && !busy}
+                          onClick={() => void handleUnbindOauth(provider.kind)}
+                        >
+                          {t("account.ssoDisconnect")}
+                        </Button>
+                      ) : null
+                    ) : (
+                      <Button
+                        size="small"
+                        type="primary"
+                        loading={busy}
+                        disabled={ssoBindingKind !== null && !busy}
+                        onClick={() => void handleBindOauth(provider.kind)}
+                      >
+                        {t("account.ssoConnect")}
+                      </Button>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        </>
+      )}
+    </div>
+  );
+
+  const preferencesTab = (
+    <div className={styles.settingsBody}>
+      <section className={styles.settingsSection}>
+        <div className={styles.settingsSectionHead}>
+          <h3 className={styles.settingsSectionTitle}>
+            {t("account.appearance")}
+          </h3>
+          <p className={styles.settingsSectionDesc}>{t("account.themeHint")}</p>
+        </div>
+        <ThemeSwitcher />
+      </section>
+
+      <Divider className={styles.settingsDivider} />
+
+      <section className={styles.settingsSection}>
+        <div className={styles.settingsSectionHead}>
+          <h3 className={styles.settingsSectionTitle}>
+            {t("account.layoutMode")}
+          </h3>
+          <p className={styles.settingsSectionDesc}>
+            {t("account.layoutModeHint")}
+          </p>
+        </div>
+        <Segmented
+          block
+          value={layoutMode}
+          options={[
+            { label: t("account.layoutClassic"), value: "classic" },
+            { label: t("account.layoutMinimal"), value: "minimal" },
+          ]}
+          onChange={(val) => setLayoutMode(val as LayoutMode)}
+        />
+      </section>
+
+      <Divider className={styles.settingsDivider} />
+
+      <section className={styles.settingsSection}>
+        <div className={styles.settingsSectionHead}>
+          <h3 className={styles.settingsSectionTitle}>
+            {t("account.language")}
+          </h3>
+          <p className={styles.settingsSectionDesc}>
+            {t("account.languageHint")}
+          </p>
+        </div>
+        <Segmented
+          block
+          value={currentLang}
+          options={[
+            { label: t("account.langZh"), value: "zh" },
+            { label: t("account.langEn"), value: "en" },
+          ]}
+          onChange={(val) => handleLocaleChange(val as string)}
+        />
+      </section>
+
+      <Divider className={styles.settingsDivider} />
+
+      <section className={styles.settingsSection}>
+        <div className={styles.settingsSectionHead}>
+          <h3 className={styles.settingsSectionTitle}>
+            {t("account.palette")}
+          </h3>
+          <p className={styles.settingsSectionDesc}>
+            {t("account.paletteHint")}
+          </p>
+        </div>
+        <PaletteSwitcher />
+      </section>
+    </div>
+  );
+
+  const settingsBody = (
+    <div className={styles.settingsLayout}>
+      <nav className={styles.settingsNav} aria-label={t("account.settings")}>
+        <button
+          type="button"
+          className={`${styles.settingsNavItem} ${
+            settingsTab === "account" ? styles.settingsNavItemActive : ""
+          }`}
+          onClick={() => setSettingsTab("account")}
+        >
+          <UserRound size={15} strokeWidth={1.8} />
+          <span>{t("account.tabAccount")}</span>
+        </button>
+        <button
+          type="button"
+          className={`${styles.settingsNavItem} ${
+            settingsTab === "preferences" ? styles.settingsNavItemActive : ""
+          }`}
+          onClick={() => setSettingsTab("preferences")}
+        >
+          <Palette size={15} strokeWidth={1.8} />
+          <span>{t("account.tabPreferences")}</span>
+        </button>
+      </nav>
+      <div className={styles.settingsPane}>
+        <div className={styles.settingsPaneMobileTabs}>
+          <Segmented
+            block
+            value={settingsTab}
+            options={[
+              { label: t("account.tabAccount"), value: "account" },
+              { label: t("account.tabPreferences"), value: "preferences" },
+            ]}
+            onChange={(val) => setSettingsTab(val as "account" | "preferences")}
+          />
+        </div>
+        {settingsTab === "account" ? accountTab : preferencesTab}
+      </div>
     </div>
   );
 
@@ -778,43 +833,10 @@ export default function AvatarDropdown({
           footer={null}
           destroyOnHidden
           centered
-          width={480}
+          width={640}
           className={styles.settingsModal}
         >
           {settingsBody}
-        </Modal>
-      )}
-
-      {isMobile ? (
-        <Drawer
-          title={t("account.changePassword")}
-          open={passwordOpen}
-          onClose={closePassword}
-          placement="bottom"
-          height="auto"
-          destroyOnHidden
-          className={styles.settingsDrawer}
-          styles={{
-            body: {
-              paddingTop: 8,
-              paddingBottom: "calc(16px + env(safe-area-inset-bottom, 0px))",
-            },
-          }}
-        >
-          {passwordBody}
-        </Drawer>
-      ) : (
-        <Modal
-          title={t("account.changePassword")}
-          open={passwordOpen}
-          onCancel={closePassword}
-          footer={null}
-          destroyOnHidden
-          centered
-          width={420}
-          className={styles.settingsModal}
-        >
-          {passwordBody}
         </Modal>
       )}
     </>

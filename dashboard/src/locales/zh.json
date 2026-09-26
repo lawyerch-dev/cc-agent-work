@@ -3578,8 +3578,11 @@
   },
   "account": {
     "myAccount": "我的账户",
-    "settings": "个人设置",
+    "settings": "设置",
+    "tabAccount": "账户",
+    "tabPreferences": "偏好",
     "appearance": "外观",
+    "themeHint": "选择浅色、深色，或跟随系统。",
     "palette": "配色",
     "paletteHint": "选择界面品牌配色，与浅色/深色模式独立。",
     "language": "语言",

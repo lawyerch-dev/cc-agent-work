@@ -3581,8 +3581,11 @@
   },
   "account": {
     "myAccount": "My Account",
-    "settings": "Personal Settings",
+    "settings": "Settings",
+    "tabAccount": "Account",
+    "tabPreferences": "Preferences",
     "appearance": "Appearance",
+    "themeHint": "Choose light, dark, or follow the system.",
     "palette": "Palette",
     "paletteHint": "Choose a brand palette, independent of light/dark mode.",
     "language": "Language",
