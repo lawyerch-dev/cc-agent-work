@@ -19,7 +19,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Spin, Tabs, Segmented, Tooltip } from "antd";
+import { Tabs, Segmented, Tooltip } from "antd";
 import { message } from "@/utils/antdMessage";
 import { modal } from "@/utils/antdModal";
 
@@ -44,11 +44,9 @@ import {
   type PublishedExpert,
 } from "../../api/modules/publishedExperts";
 import { useAgent } from "../../context/AgentContext";
-import { useCurrentUser } from "../../hooks/useCurrentUser";
 import { useCardTableView } from "../../hooks/useCardTableView";
 import type { OctopAgent } from "../../context/AgentContext";
 import { AgentCard } from "./components/AgentCard";
-import { ExpertCard } from "./components/ExpertCard";
 import type { ExpertSummary } from "./components/ExpertCard";
 import EditAgentDrawer from "./components/EditAgentDrawer";
 import CreateFromExpertDrawer, {
@@ -70,7 +68,6 @@ import {
 } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
 import { TeamCard } from "./components/TeamCard";
-import { PublishedExpertCard } from "./components/PublishedExpertCard";
 import AgentExpertsTable from "./components/AgentExpertsTable";
 import ExpertMarketTab from "./components/ExpertMarketTab";
 import { OctopEmptyMascot } from "../../components/EmptyState";
@@ -78,7 +75,7 @@ import { isOwnedExpert, ownedExperts } from "../../utils/sharedExpert";
 import { apiErrorMessage } from "../../utils/apiError";
 import styles from "./index.module.less";
 
-type TabKey = "my" | "teams" | "library" | "market";
+type TabKey = "my" | "teams" | "market";
 type ViewMode = "card" | "table";
 const VIEW_STORAGE_KEY = "octop:experts-view";
 
@@ -118,14 +115,6 @@ export default function ExpertsPage() {
   const lang: "zh" | "en" = i18n.language?.startsWith("zh") ? "zh" : "en";
   const isMobile = useIsMobile();
   const { agents, refresh: refreshAgents } = useAgent();
-  const currentUser = useCurrentUser();
-
-  const canManagePublished = useCallback(
-    (expert: PublishedExpert) =>
-      currentUser?.role === "admin" ||
-      String(currentUser?.id) === expert.created_by,
-    [currentUser],
-  );
 
   // ── Tab state ──────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState<TabKey>("my");
@@ -161,13 +150,11 @@ export default function ExpertsPage() {
     localStorage.setItem(VIEW_STORAGE_KEY, mode);
   };
 
-  // ── Built-in expert library ────────────────────────────────────
+  // ── Built-in / published templates (shown under market "预设") ──
   const [experts, setExperts] = useState<ExpertSummary[]>([]);
-  const [expertLoading, setExpertLoading] = useState(false);
   const [publishedExperts, setPublishedExperts] = useState<PublishedExpert[]>(
     [],
   );
-  const [publishedExpertLoading, setPublishedExpertLoading] = useState(false);
 
   const publishedByAgentId = useMemo(() => {
     const map: Record<string, PublishedExpert> = {};
@@ -191,8 +178,6 @@ export default function ExpertsPage() {
 
   useEffect(() => {
     let cancelled = false;
-    setExpertLoading(true);
-    setPublishedExpertLoading(true);
     Promise.all([fetchExpertLibrary(), fetchPublishedExperts()])
       .then(([expertData, publishedData]) => {
         if (!cancelled) {
@@ -205,12 +190,6 @@ export default function ExpertsPage() {
         message.error(
           err instanceof Error ? err.message : t("experts.loadFailed"),
         );
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setExpertLoading(false);
-          setPublishedExpertLoading(false);
-        }
       });
     return () => {
       cancelled = true;
@@ -477,8 +456,11 @@ export default function ExpertsPage() {
     }
   }, [t]);
 
-  const openExpertLibrary = useCallback(() => {
-    setActiveTab("library");
+  const [presetFocusToken, setPresetFocusToken] = useState(0);
+
+  const openPresetTemplates = useCallback(() => {
+    setActiveTab("market");
+    setPresetFocusToken((n) => n + 1);
   }, []);
 
   // ── "Installed" badge lookup (template_name column; legacy config.expert_id) ──
@@ -545,8 +527,8 @@ export default function ExpertsPage() {
               disabled: defaultCreating,
             }}
             secondaryAction={{
-              label: t("experts.goToLibrary"),
-              onClick: openExpertLibrary,
+              label: t("experts.goToPresets"),
+              onClick: openPresetTemplates,
               icon: <BookOpen size={14} />,
               type: "default",
             }}
@@ -556,98 +538,107 @@ export default function ExpertsPage() {
     }
 
     return (
-      <>
-        <div className={styles.gridToolbar}>
-          <span className={styles.gridCount}>
-            {t("experts.totalAgents", { count: expertAgents.length })}
-          </span>
-          <div className={styles.gridToolbarRight}>
-            <Segmented
-              size="small"
-              value={viewMode}
-              onChange={onViewChange}
-              options={[
-                {
-                  value: "card",
-                  label: (
-                    <span className={styles.viewModeLabel}>
-                      <LayoutGrid size={14} />
-                      {t("experts.viewCard", "卡片")}
-                    </span>
-                  ),
-                },
-                {
-                  value: "table",
-                  label: (
-                    <span className={styles.viewModeLabel}>
-                      <List size={14} />
-                      {t("experts.viewTable", "表格")}
-                    </span>
-                  ),
-                },
-              ]}
-            />
-            {refreshButton}
-            <button
-              className={styles.toolbarBtnPrimary}
-              type="button"
-              disabled={defaultCreating}
-              onClick={() => void openDefaultCreate()}
-            >
-              <Plus size={14} />
-              {t("experts.newExpert")}
-            </button>
-            <button className={styles.toolbarBtn} onClick={openExpertLibrary}>
-              {t("experts.addFromLibrary")}
-            </button>
+      <div className={styles.paneLayout}>
+        <div className={styles.paneHeader}>
+          <div className={styles.gridToolbar}>
+            <span className={styles.gridCount}>
+              {t("experts.totalAgents", { count: expertAgents.length })}
+            </span>
+            <div className={styles.gridToolbarRight}>
+              <Segmented
+                size="small"
+                value={viewMode}
+                onChange={onViewChange}
+                options={[
+                  {
+                    value: "card",
+                    label: (
+                      <span className={styles.viewModeLabel}>
+                        <LayoutGrid size={14} />
+                        {t("experts.viewCard", "卡片")}
+                      </span>
+                    ),
+                  },
+                  {
+                    value: "table",
+                    label: (
+                      <span className={styles.viewModeLabel}>
+                        <List size={14} />
+                        {t("experts.viewTable", "表格")}
+                      </span>
+                    ),
+                  },
+                ]}
+              />
+              {refreshButton}
+              <button
+                className={styles.toolbarBtnPrimary}
+                type="button"
+                disabled={defaultCreating}
+                onClick={() => void openDefaultCreate()}
+              >
+                <Plus size={14} />
+                {t("experts.newExpert")}
+              </button>
+              <button
+                className={styles.toolbarBtn}
+                onClick={openPresetTemplates}
+              >
+                {t("experts.addFromPresets")}
+              </button>
+            </div>
           </div>
         </div>
-        {showCardView ? (
-          <div className={styles.cardGrid}>
-            {expertAgents.map((agent) => (
-              <div
-                key={agent.agent_id}
-                className={
-                  newAgentId === agent.agent_id
-                    ? styles.agentCardNew
-                    : undefined
-                }
-              >
-                <AgentCard
-                  agent={agent}
-                  iconName={agent.icon_name}
-                  iconUrl={agent.icon_url}
-                  accentColor={agent.color}
-                  publishedExpert={publishedByAgentId[agent.agent_id] ?? null}
-                  onPublishedChange={() => {
-                    void refreshPublishedExperts();
-                  }}
-                  onEdit={(id) =>
-                    setEditAgent(
-                      localAgents.find((a) => a.agent_id === id) ?? null,
-                    )
+        <div className={styles.paneScroll}>
+          {showCardView ? (
+            <div className={styles.cardGrid}>
+              {expertAgents.map((agent) => (
+                <div
+                  key={agent.agent_id}
+                  className={
+                    newAgentId === agent.agent_id
+                      ? styles.agentCardNew
+                      : undefined
                   }
-                  onDeleted={handleDeleted}
-                  onStateChange={handleStateChange}
-                />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <AgentExpertsTable
-            agents={expertAgents}
-            publishedByAgentId={publishedByAgentId}
-            onPublishedChange={() => {
-              void refreshPublishedExperts();
-            }}
-            onEdit={(id) =>
-              setEditAgent(expertAgents.find((a) => a.agent_id === id) ?? null)
-            }
-            onDeleted={handleDeleted}
-            onStateChange={handleStateChange}
-          />
-        )}
-      </>
+                >
+                  <AgentCard
+                    agent={agent}
+                    iconName={agent.icon_name}
+                    iconUrl={agent.icon_url}
+                    accentColor={agent.color}
+                    publishedExpert={publishedByAgentId[agent.agent_id] ?? null}
+                    onPublishedChange={() => {
+                      void refreshPublishedExperts();
+                    }}
+                    onEdit={(id) =>
+                      setEditAgent(
+                        localAgents.find((a) => a.agent_id === id) ?? null,
+                      )
+                    }
+                    onDeleted={handleDeleted}
+                    onStateChange={handleStateChange}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <AgentExpertsTable
+              agents={expertAgents}
+              publishedByAgentId={publishedByAgentId}
+              onPublishedChange={() => {
+                void refreshPublishedExperts();
+              }}
+              onEdit={(id) =>
+                setEditAgent(
+                  expertAgents.find((a) => a.agent_id === id) ?? null,
+                )
+              }
+              onDeleted={handleDeleted}
+              onStateChange={handleStateChange}
+            />
+          )}
+        </div>
+      </div>
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -656,7 +647,7 @@ export default function ExpertsPage() {
     isMobile,
     newAgentId,
     openDefaultCreate,
-    openExpertLibrary,
+    openPresetTemplates,
     publishedByAgentId,
     refreshButton,
     refreshPublishedExperts,
@@ -753,8 +744,8 @@ export default function ExpertsPage() {
     );
     if (teamAgents.length === 0) {
       return (
-        <>
-          {teamToolbar}
+        <div className={styles.paneLayout}>
+          <div className={styles.paneHeader}>{teamToolbar}</div>
           <div
             className={`${styles.emptyLayout}${
               isMobile ? ` ${styles.emptyLayoutMobile}` : ""
@@ -783,50 +774,52 @@ export default function ExpertsPage() {
               ]}
             />
           </div>
-        </>
+        </div>
       );
     }
     return (
-      <>
-        {teamToolbar}
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleTeamDragEnd}
-        >
-          <SortableContext
-            items={sortedTeamAgents.map((item) => item.agent_id)}
-            strategy={rectSortingStrategy}
-            disabled={teamSelectMode}
+      <div className={styles.paneLayout}>
+        <div className={styles.paneHeader}>{teamToolbar}</div>
+        <div className={styles.paneScroll}>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleTeamDragEnd}
           >
-            <div className={styles.cardGrid}>
-              {sortedTeamAgents.map((agent) => (
-                <SortableTeamItem
-                  key={agent.agent_id}
-                  id={agent.agent_id}
-                  disabled={teamSelectMode}
-                >
-                  <TeamCard
-                    agent={agent}
-                    experts={pickableExperts}
-                    selectMode={teamSelectMode}
-                    selected={selectedTeamIds.has(agent.agent_id)}
-                    onToggleSelect={toggleTeamSelect}
-                    onEdit={(id) => {
-                      const row = sortedTeamAgents.find(
-                        (item) => item.agent_id === id,
-                      );
-                      if (row) setTeamDrawer({ mode: "edit", team: row });
-                    }}
-                    onDeleted={handleDeleted}
-                    onStateChange={handleStateChange}
-                  />
-                </SortableTeamItem>
-              ))}
-            </div>
-          </SortableContext>
-        </DndContext>
-      </>
+            <SortableContext
+              items={sortedTeamAgents.map((item) => item.agent_id)}
+              strategy={rectSortingStrategy}
+              disabled={teamSelectMode}
+            >
+              <div className={styles.cardGrid}>
+                {sortedTeamAgents.map((agent) => (
+                  <SortableTeamItem
+                    key={agent.agent_id}
+                    id={agent.agent_id}
+                    disabled={teamSelectMode}
+                  >
+                    <TeamCard
+                      agent={agent}
+                      experts={pickableExperts}
+                      selectMode={teamSelectMode}
+                      selected={selectedTeamIds.has(agent.agent_id)}
+                      onToggleSelect={toggleTeamSelect}
+                      onEdit={(id) => {
+                        const row = sortedTeamAgents.find(
+                          (item) => item.agent_id === id,
+                        );
+                        if (row) setTeamDrawer({ mode: "edit", team: row });
+                      }}
+                      onDeleted={handleDeleted}
+                      onStateChange={handleStateChange}
+                    />
+                  </SortableTeamItem>
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
+        </div>
+      </div>
     );
   }, [
     batchDeleting,
@@ -848,115 +841,18 @@ export default function ExpertsPage() {
     toggleTeamSelect,
   ]);
 
-  const libraryContent = useMemo(() => {
-    if (expertLoading || publishedExpertLoading) {
-      return (
-        <div className={styles.loadingState}>
-          <Spin />
-        </div>
-      );
-    }
-    if (experts.length === 0 && publishedExperts.length === 0) {
-      return (
-        <div className={styles.emptyState}>
-          <OctopEmptyMascot />
-          <div className={styles.emptyTitle}>{t("experts.emptyLibrary")}</div>
-          <div className={styles.emptyHint}>
-            {t("experts.emptyLibraryHint")}
-          </div>
-          <div className={styles.emptyActions}>{refreshButton}</div>
-        </div>
-      );
-    }
-    return (
-      <>
-        {publishedExperts.length > 0 && (
-          <>
-            <div className={styles.gridToolbar}>
-              <span className={styles.gridCount}>
-                {t("experts.published.listTitle", {
-                  count: publishedExperts.length,
-                })}
-              </span>
-            </div>
-            <p
-              style={{
-                color: "var(--fn-text-tertiary)",
-                fontSize: 13,
-                margin: "0 0 12px",
-              }}
-            >
-              {t("experts.published.listHint")}
-            </p>
-            <div className={styles.cardGrid}>
-              {publishedExperts.map((expert) => (
-                <PublishedExpertCard
-                  key={expert.id}
-                  expert={expert}
-                  canManage={canManagePublished(expert)}
-                  onInstall={(item) =>
-                    setCreateSource({ kind: "published", expert: item })
-                  }
-                  onChanged={refreshPublishedExperts}
-                />
-              ))}
-            </div>
-          </>
-        )}
-        <div className={styles.gridToolbar}>
-          <span className={styles.gridCount}>
-            {t("experts.totalLibrary", { count: experts.length })}
-          </span>
-          <div className={styles.gridToolbarRight}>{refreshButton}</div>
-        </div>
-        {publishedExperts.length === 0 && (
-          <p
-            style={{
-              color: "var(--fn-text-tertiary)",
-              fontSize: 13,
-              margin: "0 0 12px",
-            }}
-          >
-            {t("experts.published.emptyHint")}
-          </p>
-        )}
-        <div className={styles.cardGrid}>
-          {experts.map((expert) => (
-            <ExpertCard
-              key={expert.id}
-              expert={expert}
-              lang={lang}
-              isInstalled={agentExpertIds.has(expert.id)}
-              onCreate={(item) =>
-                setCreateSource({ kind: "builtin", expert: item })
-              }
-            />
-          ))}
-        </div>
-      </>
-    );
-  }, [
-    agentExpertIds,
-    expertLoading,
-    experts,
-    lang,
-    publishedExpertLoading,
-    publishedExperts,
-    refreshButton,
-    t,
-  ]);
-
   const marketContent = useMemo(
     () => (
       <ExpertMarketTab
         lang={lang}
         installedExpertIds={agentExpertIds}
-        onRequestCreate={(expert) =>
-          setCreateSource({ kind: "market", expert })
-        }
+        onRequestCreate={(source) => setCreateSource(source)}
+        presetExperts={experts}
+        publishedExperts={publishedExperts}
+        focusPresetToken={presetFocusToken}
       />
     ),
-    [agentExpertIds, lang],
+    [agentExpertIds, experts, lang, presetFocusToken, publishedExperts],
   );
 
   return (
@@ -986,13 +882,6 @@ export default function ExpertsPage() {
               <TabLabel icon={GraduationCap}>{t("experts.myExperts")}</TabLabel>
             ),
             children: myExpertsContent,
-          },
-          {
-            key: "library",
-            label: (
-              <TabLabel icon={BookOpen}>{t("experts.expertLibrary")}</TabLabel>
-            ),
-            children: libraryContent,
           },
           {
             key: "market",

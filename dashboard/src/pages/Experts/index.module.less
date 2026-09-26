@@ -22,6 +22,34 @@
 
 /* ── Card Grid ─────────────────────────────────────────────────── */
 
+/* Tab pane: pin toolbar / scene tabs, scroll only the card body. */
+.paneLayout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+
+  @media (max-width: 767px) {
+    height: auto;
+  }
+}
+
+.paneHeader {
+  flex-shrink: 0;
+}
+
+.paneScroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  @media (max-width: 767px) {
+    flex: none;
+    overflow: visible;
+  }
+}
+
 .cardGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -1069,30 +1097,336 @@
 
 /* ── Expert Market ─────────────────────────────────────────────── */
 
+/* Profile flip card: whole card (body + footer) rotates together. */
+.talentCard {
+  perspective: 1600px;
+  height: 388px;
+  cursor: default;
+}
+
+.talentCardInner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+}
+
+.talentCardFlipped {
+  .talentCardInner {
+    transform: rotateY(180deg);
+  }
+}
+
+.talentCardFace {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border: 1.5px solid var(--fn-card-border-normal);
+  border-radius: 14px;
+  background: var(--fn-bg-primary);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.talentCard:hover .talentCardFace {
+  border-color: color-mix(
+    in srgb,
+    var(--expert-accent, var(--fn-color-brand)) 55%,
+    var(--fn-card-border-normal)
+  );
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.1);
+}
+
+.talentCardBack {
+  transform: rotateY(180deg);
+}
+
+.talentCardBody {
+  flex: 1;
+  min-height: 0;
+  padding: 18px 18px 12px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  /* Scroll without an ugly bar. */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.talentCardFooter {
+  flex-shrink: 0;
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  padding: 12px 14px 14px;
+  border-top: 1px solid var(--fn-border-secondary, #eef0f4);
+  background: color-mix(
+    in srgb,
+    var(--expert-accent, var(--fn-color-brand)) 3%,
+    var(--fn-bg-primary)
+  );
+}
+
+.talentCardFooter > * {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 40px;
+  height: auto;
+  font-size: 14px;
+}
+
+.talentCardFooter :global(.ant-btn) {
+  width: 100%;
+  margin: 0;
+  height: 40px;
+  padding: 0 16px;
+  font-size: 14px;
+}
+
+/* Front — profile snapshot */
+.talentProfileHead {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.talentAvatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  color: var(--expert-accent, var(--fn-color-brand));
+  background: color-mix(
+    in srgb,
+    var(--expert-accent, var(--fn-color-brand)) 12%,
+    transparent
+  );
+}
+
+.talentAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.talentName {
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--fn-text-primary);
+  margin: 0;
+}
+
+.talentRoleLine {
+  font-size: 13px;
+  color: var(--expert-accent, var(--fn-color-brand));
+  font-weight: 600;
+  margin: 3px 0 0;
+}
+
+.talentOneLiner {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--fn-text-secondary);
+  margin: 0;
+  /* Job positioning must be readable in full — body scrolls if long. */
+  white-space: pre-wrap;
+}
+
+.talentSkillTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-height: 64px;
+  overflow: hidden;
+}
+
+.talentSkillTag {
+  font-size: 12.5px;
+  line-height: 1;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: color-mix(
+    in srgb,
+    var(--expert-accent, var(--fn-color-brand)) 10%,
+    transparent
+  );
+  color: var(--expert-accent, var(--fn-color-brand));
+  font-weight: 550;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.talentCanDoBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.talentCanDoLabel {
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--fn-text-tertiary);
+  letter-spacing: 0.04em;
+}
+
+.talentCanDoItem {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--fn-text-secondary);
+  padding-left: 12px;
+  position: relative;
+
+  &::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.55em;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--expert-accent, var(--fn-color-brand));
+  }
+}
+
+.talentCardFlipHint {
+  margin-top: auto;
+  font-size: 11px;
+  color: var(--fn-text-quaternary);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Back — resume, larger type, scroll without a bar */
+.talentResumeTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--fn-text-primary);
+  margin: 0 0 6px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  &::before {
+    content: "";
+    width: 4px;
+    height: 14px;
+    border-radius: 2px;
+    background: var(--expert-accent, var(--fn-color-brand));
+    flex-shrink: 0;
+  }
+}
+
+.talentResumeText {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--fn-text-secondary);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.talentResumeList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.talentResumeItem {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--fn-text-secondary);
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--fn-bg-secondary, rgba(15, 23, 42, 0.035));
+}
+
+.talentResumeMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--fn-text-tertiary);
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px dashed var(--fn-border-secondary, #eef0f4);
+}
+
 .marketContainer {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+
+  @media (max-width: 767px) {
+    height: auto;
+  }
 }
 
 .marketSceneTabsWrap {
   width: 100%;
   margin-top: 16px;
   margin-bottom: 16px;
+  flex-shrink: 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   padding-bottom: 2px;
+
+  /* Horizontal swipe without a visible scrollbar. */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .marketSceneTabs {
-  width: 100%;
-  min-width: max-content;
+  width: max-content;
+  min-width: 100%;
+
+  :global(.ant-segmented-group) {
+    display: flex;
+    flex-wrap: nowrap;
+  }
 
   :global(.ant-segmented-item) {
+    flex: 0 0 auto;
     min-width: 4.75em;
   }
 
   :global(.ant-segmented-item-label) {
     font-weight: 500;
     white-space: nowrap;
+    overflow: visible;
+    text-overflow: clip;
   }
 }
 
