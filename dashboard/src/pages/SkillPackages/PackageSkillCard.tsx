@@ -1,14 +1,18 @@
+import type { DragEvent } from "react";
 import { Popconfirm } from "antd";
 import { FileCode2, Info, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { SkillPackageSkill } from "../../api/types/skillPackage";
 import skillStyles from "../Agent/Skills/index.module.less";
+import styles from "./index.module.less";
 
 interface PackageSkillCardProps {
   skill: SkillPackageSkill;
   canMutate: boolean;
   onClick: () => void;
   onDelete?: () => void;
+  onDragStart?: (e: DragEvent<HTMLDivElement>) => void;
+  onDragEnd?: (e: DragEvent<HTMLDivElement>) => void;
 }
 
 const DEFAULT_COLOR = "#8B5CF6";
@@ -18,6 +22,8 @@ export function PackageSkillCard({
   canMutate,
   onClick,
   onDelete,
+  onDragStart,
+  onDragEnd,
 }: PackageSkillCardProps) {
   const { t } = useTranslation();
   const iconUrl = skill.icon_url || undefined;
@@ -28,10 +34,13 @@ export function PackageSkillCard({
 
   return (
     <div
-      className={skillStyles.skillCard}
+      className={`${skillStyles.skillCard} ${styles.compactSkillCard}`}
       onClick={onClick}
       role="button"
       tabIndex={0}
+      draggable
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
       onKeyDown={(e) => e.key === "Enter" && onClick()}
     >
       <div className={skillStyles.cardBody}>
@@ -41,6 +50,8 @@ export function PackageSkillCard({
             style={{
               color: DEFAULT_COLOR,
               backgroundColor: iconUrl ? "transparent" : iconBg,
+              width: 32,
+              height: 32,
             }}
           >
             {iconUrl ? (
@@ -48,16 +59,16 @@ export function PackageSkillCard({
                 src={iconUrl}
                 alt=""
                 style={{
-                  width: 44,
-                  height: 44,
+                  width: 32,
+                  height: 32,
                   borderRadius: "var(--fn-radius-md)",
                   objectFit: "cover",
                 }}
               />
             ) : emoji ? (
-              <span style={{ fontSize: 22, lineHeight: 1 }}>{emoji}</span>
+              <span style={{ fontSize: 18, lineHeight: 1 }}>{emoji}</span>
             ) : (
-              <FileCode2 size={22} strokeWidth={2} />
+              <FileCode2 size={18} strokeWidth={2} />
             )}
           </div>
           <div className={skillStyles.cardMeta}>
@@ -81,7 +92,7 @@ export function PackageSkillCard({
               onClick();
             }}
           >
-            <Info size={14} />
+            <Info size={13} />
             {t("common.viewDetail")}
           </button>
           {canMutate && onDelete ? (
@@ -99,7 +110,7 @@ export function PackageSkillCard({
                   onClick={(e) => e.stopPropagation()}
                   aria-label={t("common.delete")}
                 >
-                  <Trash2 size={14} />
+                  <Trash2 size={13} />
                 </button>
               </Popconfirm>
             </div>
