@@ -1,5 +1,12 @@
 """Expert-team hosts and member roster."""
 
+from octop.infra.agents.teams.catalog import (
+    TeamCatalog,
+    TeamTemplate,
+    TeamTemplateRole,
+    TeamTemplateSummary,
+    default_library_root,
+)
 from octop.infra.agents.teams.jobs import TeamJobTracker
 from octop.infra.agents.teams.service import (
     HOST_TOOLS_ALLOWED,
@@ -29,10 +36,15 @@ __all__ = [
     "TEAM_MIN_MEMBERS",
     "TEAM_TEMPLATE_NAME",
     "TEMPLATE_DIR",
+    "TeamCatalog",
     "TeamJobTracker",
     "TeamManager",
     "TeamService",
+    "TeamTemplate",
+    "TeamTemplateRole",
+    "TeamTemplateSummary",
     "agent_kind",
+    "default_library_root",
     "host_system_prompt",
     "host_tools_disabled",
     "is_team_agent",
