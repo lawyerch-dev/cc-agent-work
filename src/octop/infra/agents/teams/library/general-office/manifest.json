@@ -1,0 +1,41 @@
+{
+  "kind": "team",
+  "members": [],
+  "team_template": "general-office",
+  "label": {
+    "zh": "总经办",
+    "en": "General Office"
+  },
+  "description": {
+    "zh": "经营统筹、跨部门协调、对外沟通与经营分析。",
+    "en": "Company-wide coordination, external communication, and business analysis."
+  },
+  "welcome_message": {
+    "zh": "我是总经办主管，先说清要办的事，我来协调各部门。",
+    "en": "I lead the General Office. Tell me the goal and I'll coordinate the teams."
+  },
+  "suggested_roles": [
+    {
+      "name": {
+        "zh": "总经理助理",
+        "en": "Chief of Staff"
+      },
+      "description": {
+        "zh": "日程、会议与跨部门跟进。",
+        "en": "Scheduling, meetings, cross-team follow-ups."
+      }
+    },
+    {
+      "name": {
+        "zh": "经营分析",
+        "en": "Business Analyst"
+      },
+      "description": {
+        "zh": "经营数据汇总与分析。",
+        "en": "Business metrics and analysis."
+      }
+    }
+  ],
+  "icon": "users",
+  "color": "#1f6feb"
+}

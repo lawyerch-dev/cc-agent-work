@@ -1,0 +1,51 @@
+{
+  "kind": "team",
+  "members": [],
+  "team_template": "operations",
+  "label": {
+    "zh": "运营部",
+    "en": "Operations"
+  },
+  "description": {
+    "zh": "采购、库存、供应链与生产交付。",
+    "en": "Procurement, inventory, supply chain, and delivery."
+  },
+  "welcome_message": {
+    "zh": "我是运营部主管，采购、库存和交付的事交给我。",
+    "en": "I lead Operations. I handle procurement, inventory, and delivery."
+  },
+  "suggested_roles": [
+    {
+      "name": {
+        "zh": "采购",
+        "en": "Procurement"
+      },
+      "description": {
+        "zh": "询价、下单与供应商。",
+        "en": "Quotes, ordering, suppliers."
+      }
+    },
+    {
+      "name": {
+        "zh": "库管",
+        "en": "Inventory"
+      },
+      "description": {
+        "zh": "库存与出入库。",
+        "en": "Stock and in/out records."
+      }
+    },
+    {
+      "name": {
+        "zh": "运营",
+        "en": "Operations"
+      },
+      "description": {
+        "zh": "排程与交付。",
+        "en": "Scheduling and delivery."
+      }
+    }
+  ],
+  "icon": "users",
+  "color": "#8250df"
+}

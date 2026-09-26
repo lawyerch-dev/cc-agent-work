@@ -1,0 +1,41 @@
+{
+  "kind": "team",
+  "members": [],
+  "team_template": "finance",
+  "label": {
+    "zh": "财务部",
+    "en": "Finance"
+  },
+  "description": {
+    "zh": "记账、报销、预算、税务与报表。",
+    "en": "Bookkeeping, reimbursements, budgeting, tax, and reporting."
+  },
+  "welcome_message": {
+    "zh": "我是财务部主管，报销、预算、税务的问题交给我。",
+    "en": "I lead Finance. Bring me reimbursements, budgets, or tax questions."
+  },
+  "suggested_roles": [
+    {
+      "name": {
+        "zh": "会计",
+        "en": "Accountant"
+      },
+      "description": {
+        "zh": "记账、报表与预算。",
+        "en": "Bookkeeping, reporting, budgeting."
+      }
+    },
+    {
+      "name": {
+        "zh": "出纳",
+        "en": "Cashier"
+      },
+      "description": {
+        "zh": "收付款与报销。",
+        "en": "Payments and reimbursements."
+      }
+    }
+  ],
+  "icon": "users",
+  "color": "#bf8700"
+}

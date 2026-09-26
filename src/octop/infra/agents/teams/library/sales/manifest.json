@@ -1,0 +1,51 @@
+{
+  "kind": "team",
+  "members": [],
+  "team_template": "sales",
+  "label": {
+    "zh": "业务部",
+    "en": "Sales"
+  },
+  "description": {
+    "zh": "获客、销售、客户维护与市场推广。",
+    "en": "Lead generation, sales, account management, and marketing."
+  },
+  "welcome_message": {
+    "zh": "我是业务部主管，获客、销售和客户的事都归我协调。",
+    "en": "I lead Sales. I coordinate lead generation, sales, and accounts."
+  },
+  "suggested_roles": [
+    {
+      "name": {
+        "zh": "销售",
+        "en": "Sales"
+      },
+      "description": {
+        "zh": "跟进线索与成单。",
+        "en": "Pipeline and closing deals."
+      }
+    },
+    {
+      "name": {
+        "zh": "市场",
+        "en": "Marketer"
+      },
+      "description": {
+        "zh": "推广与获客。",
+        "en": "Promotion and lead generation."
+      }
+    },
+    {
+      "name": {
+        "zh": "客户成功",
+        "en": "Customer Success"
+      },
+      "description": {
+        "zh": "客户维护与续约。",
+        "en": "Account care and renewals."
+      }
+    }
+  ],
+  "icon": "users",
+  "color": "#cf222e"
+}

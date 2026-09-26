@@ -1,0 +1,41 @@
+{
+  "kind": "team",
+  "members": [],
+  "team_template": "hr-admin",
+  "label": {
+    "zh": "人事行政部",
+    "en": "HR & Admin"
+  },
+  "description": {
+    "zh": "招聘、入离职、考勤、制度与后勤。",
+    "en": "Hiring, onboarding/offboarding, attendance, policy, and office admin."
+  },
+  "welcome_message": {
+    "zh": "我是人事行政部主管，说说你在人力和行政上的需求。",
+    "en": "I lead HR & Admin. Tell me what you need on hiring or office admin."
+  },
+  "suggested_roles": [
+    {
+      "name": {
+        "zh": "招聘专员",
+        "en": "Recruiter"
+      },
+      "description": {
+        "zh": "发布职位、筛选与面试安排。",
+        "en": "Job posts, screening, interview scheduling."
+      }
+    },
+    {
+      "name": {
+        "zh": "行政专员",
+        "en": "Admin Specialist"
+      },
+      "description": {
+        "zh": "考勤、制度与办公后勤。",
+        "en": "Attendance, policy, office logistics."
+      }
+    }
+  ],
+  "icon": "users",
+  "color": "#2da44e"
+}
