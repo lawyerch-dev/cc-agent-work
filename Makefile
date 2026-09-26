@@ -49,6 +49,9 @@ help:
 	@echo "  publish-test     Build + upload to TestPyPI"
 	@echo ""
 	@echo "Development targets:"
+	@echo "  start            One-click start: desktop shell (default; stop first, then start)"
+	@echo "  start-dev        One-click start: browser development (stop first, then start)"
+	@echo "  stop             Stop existing Octop desktop/dev instances"
 	@echo "  dev              Start frontend + backend dev servers"
 	@echo "  dev-frontend     Start Vite dev server only"
 	@echo "  dev-backend      Start octop run only"
@@ -154,6 +157,18 @@ publish-test:
 	$(MAKE) publish PYPI_REPO=testpypi
 
 # ─── Development ─────────────────────────────────────────────────────────────
+
+.PHONY: start
+start:
+	bash scripts/start.sh desktop
+
+.PHONY: start-dev
+start-dev:
+	bash scripts/start.sh dev
+
+.PHONY: stop
+stop:
+	bash scripts/start.sh stop
 
 .PHONY: dev
 dev:

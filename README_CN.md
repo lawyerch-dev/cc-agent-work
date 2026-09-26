@@ -22,6 +22,16 @@
 - Python 3.12+（推荐用 [uv](https://docs.astral.sh/uv/)）
 - Node.js 20+（构建控制台时需要）
 
+### 一键启动（推荐）
+
+```bash
+make start       # 桌面端（默认，Wails shell）
+make start-dev   # 浏览器开发模式（Vite + 后端）
+make stop        # 停掉现有实例
+```
+
+等价于 `scripts/start.sh desktop|dev|stop`。`start` / `start-dev` 会**先关闭**已有桌面/开发实例并释放 8088 / 5173 / 5174 / 9245 端口，再启动，避免重复窗口或端口冲突。桌面端还需 Go 1.25+ 与 `wails3`（见 `desktop/README.md`）；首次会自动 `make build-frontend`。
+
 ### 从源码运行
 
 ```bash
