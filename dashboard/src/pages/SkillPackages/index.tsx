@@ -14,7 +14,6 @@ import type { MenuProps } from "antd";
 import { message } from "@/utils/antdMessage";
 
 import {
-  ChevronLeft,
   Download,
   LayoutGrid,
   List as ListIcon,
@@ -563,7 +562,8 @@ export default function SkillPackagesPage() {
   };
 
   const skills = selected?.skills ?? [];
-  const rootMode = !selectedId;
+  const visibleSkills: (SkillPackageSkill & { package_name?: string })[] =
+    selected ? skills : allSkills;
 
   const skillCards = (
     rows: (SkillPackageSkill & { package_name?: string })[],
@@ -581,11 +581,11 @@ export default function SkillPackagesPage() {
                   can_write: selected?.can_write,
                 },
                 user,
-              ) || rootMode
+              ) || !selected
             }
             onClick={() => void openEditSkill(skill.package_id, skill.slug)}
             onDelete={
-              rootMode || canMutate
+              !selected || canMutate
                 ? () => void deleteSkill(skill.package_id, skill.slug)
                 : undefined
             }
@@ -595,10 +595,10 @@ export default function SkillPackagesPage() {
     ) : (
       <PackageSkillsTable
         skills={rows}
-        canMutate={canMutate || rootMode}
+        canMutate={canMutate || !selected}
         onView={(skill) => void openEditSkill(skill.package_id, skill.slug)}
         onDelete={
-          rootMode || canMutate
+          !selected || canMutate
             ? (skill) => void deleteSkill(skill.package_id, skill.slug)
             : undefined
         }
@@ -610,7 +610,9 @@ export default function SkillPackagesPage() {
       {packages.map((item) => (
         <div
           key={item.id}
-          className={styles.folderCard}
+          className={`${styles.folderCard}${
+            item.id === selectedId ? ` ${styles.folderCardActive}` : ""
+          }`}
           role="button"
           tabIndex={0}
           onClick={() => enterPackage(item)}
@@ -655,133 +657,130 @@ export default function SkillPackagesPage() {
     </div>
   );
 
-  const skillsViewToggle = (
-    <Segmented
-      size="small"
-      value={viewMode}
-      onChange={(value) => setViewMode(value === "table" ? "table" : "card")}
-      options={[
-        {
-          value: "card",
-          label: (
-            <span className={skillStyles.viewModeLabel}>
-              <LayoutGrid size={14} />
-              {t("experts.viewCard")}
-            </span>
-          ),
-        },
-        {
-          value: "table",
-          label: (
-            <span className={skillStyles.viewModeLabel}>
-              <ListIcon size={14} />
-              {t("experts.viewTable")}
-            </span>
-          ),
-        },
-      ]}
-    />
-  );
-
-  const libraryToolbar = (
-    <div className={`${skillStyles.gridToolbar} ${styles.skillsToolbar}`}>
-      <div className={styles.breadcrumb}>
-        {!rootMode && (
-          <>
+  const libraryBody = (
+    <div className={styles.splitLayout}>
+      <aside className={styles.packagesPane}>
+        <div className={styles.paneHeader}>
+          <div className={styles.paneTitle}>
+            {t("skillPackages.rootPackages")}
+            <span className={styles.sectionCount}>{packages.length}</span>
+          </div>
+          <div className={styles.paneActions}>
+            <Tooltip title={t("skillPackages.fromSkillHub")}>
+              <button
+                type="button"
+                className={skillStyles.toolbarIconBtn}
+                onClick={() => setSkillsetHubOpen(true)}
+                aria-label={t("skillPackages.fromSkillHub")}
+              >
+                <Store size={14} />
+              </button>
+            </Tooltip>
             <button
               type="button"
-              className={styles.breadcrumbLink}
-              onClick={backToLibraryRoot}
+              className={skillStyles.toolbarBtnPrimary}
+              onClick={openCreatePackage}
             >
-              <ChevronLeft size={14} />
-              {t("skillPackages.backToLibrary")}
+              <Plus size={14} />
+              {t("skillPackages.createPackage")}
             </button>
-            <span className={styles.breadcrumbSep}>/</span>
-            <span className={styles.breadcrumbCurrent}>
-              {selected?.name ?? ""}
-            </span>
-          </>
-        )}
-      </div>
-      <div className={skillStyles.gridToolbarRight}>
-        <Tooltip title={t("common.refresh")}>
-          <button
-            type="button"
-            className={skillStyles.toolbarIconBtn}
-            onClick={() => void handleRefresh()}
-            disabled={refreshing || detailLoading || libraryLoading}
-          >
-            <RefreshCw
-              size={14}
-              className={refreshing ? skillStyles.spinning : undefined}
-            />
-          </button>
-        </Tooltip>
-        <button
-          type="button"
-          className={skillStyles.toolbarBtn}
-          onClick={() => setSkillsetHubOpen(true)}
-        >
-          <Store size={14} />
-          {t("skillPackages.fromSkillHub")}
-        </button>
-        <button
-          type="button"
-          className={skillStyles.toolbarBtn}
-          onClick={() => setHubOpen(true)}
-        >
-          <Store size={14} />
-          {t("skills.tencentSkillHub")}
-        </button>
-        <button
-          type="button"
-          className={skillStyles.toolbarBtn}
-          onClick={() => setImportModalOpen(true)}
-        >
-          <Download size={14} />
-          {t("skills.importSkills")}
-        </button>
-        <button
-          type="button"
-          className={skillStyles.toolbarBtn}
-          onClick={openCreatePackage}
-        >
-          <Plus size={14} />
-          {t("skillPackages.createPackage")}
-        </button>
-        <button
-          type="button"
-          className={skillStyles.toolbarBtnPrimary}
-          onClick={() => void openCreateSkill()}
-        >
-          <Plus size={14} />
-          {t("skillPackages.createSkill")}
-        </button>
-      </div>
-    </div>
-  );
+          </div>
+        </div>
+        <div className={styles.paneBody}>
+          {loading && packages.length === 0 ? (
+            <CardSkeleton count={3} />
+          ) : (
+            folderCards
+          )}
+        </div>
+      </aside>
 
-  const libraryBody = rootMode ? (
-    detailLoading || libraryLoading || loading ? (
-      <CardSkeleton count={6} />
-    ) : (
-      <>
-        {packages.length > 0 && (
-          <div className={styles.sectionBlock}>
-            <div className={styles.sectionTitle}>
-              {t("skillPackages.rootPackages")}
-              <span className={styles.sectionCount}>{packages.length}</span>
-            </div>
-            {folderCards}
+      <section className={styles.skillsPane}>
+        <div className={styles.paneHeader}>
+          <div className={styles.paneTitle}>
+            {selected ? selected.name : t("skillPackages.rootSkills")}
+            <span className={styles.sectionCount}>{visibleSkills.length}</span>
+            {selected ? (
+              <button
+                type="button"
+                className={styles.paneClearBtn}
+                onClick={backToLibraryRoot}
+              >
+                {t("skillPackages.allSkills")}
+              </button>
+            ) : null}
           </div>
-        )}
-        <div className={styles.sectionBlock}>
-          <div className={styles.sectionTitle}>
-            {t("skillPackages.rootSkills")}
-            <span className={styles.sectionCount}>{allSkills.length}</span>
-            <span className={styles.sectionActions}>{skillsViewToggle}</span>
+          <div className={styles.paneActions}>
+            <Segmented
+              size="small"
+              value={viewMode}
+              onChange={(value) =>
+                setViewMode(value === "table" ? "table" : "card")
+              }
+              options={[
+                {
+                  value: "card",
+                  label: (
+                    <span className={skillStyles.viewModeLabel}>
+                      <LayoutGrid size={14} />
+                      {t("experts.viewCard")}
+                    </span>
+                  ),
+                },
+                {
+                  value: "table",
+                  label: (
+                    <span className={skillStyles.viewModeLabel}>
+                      <ListIcon size={14} />
+                      {t("experts.viewTable")}
+                    </span>
+                  ),
+                },
+              ]}
+            />
+            <Tooltip title={t("common.refresh")}>
+              <button
+                type="button"
+                className={skillStyles.toolbarIconBtn}
+                onClick={() => void handleRefresh()}
+                disabled={refreshing || detailLoading || libraryLoading}
+              >
+                <RefreshCw
+                  size={14}
+                  className={refreshing ? skillStyles.spinning : undefined}
+                />
+              </button>
+            </Tooltip>
+            <button
+              type="button"
+              className={skillStyles.toolbarBtn}
+              onClick={() => setHubOpen(true)}
+            >
+              <Store size={14} />
+              {t("skills.tencentSkillHub")}
+            </button>
+            <button
+              type="button"
+              className={skillStyles.toolbarBtn}
+              onClick={() => setImportModalOpen(true)}
+            >
+              <Download size={14} />
+              {t("skills.importSkills")}
+            </button>
+            <button
+              type="button"
+              className={skillStyles.toolbarBtnPrimary}
+              onClick={() => void openCreateSkill()}
+            >
+              <Plus size={14} />
+              {t("skillPackages.createSkill")}
+            </button>
           </div>
-          {allSkills.length === 0 ? (
+        </div>
+        <div className={styles.paneBody}>
+          {detailLoading || libraryLoading ? (
+            <CardSkeleton count={6} />
+          ) : visibleSkills.length === 0 ? (
             <EmptyState
               variant="mascot"
               title={t("skillPackages.emptySkills")}
@@ -790,31 +789,10 @@ export default function SkillPackagesPage() {
               onAction={() => void openCreateSkill()}
             />
           ) : (
-            skillCards(allSkills)
+            skillCards(visibleSkills)
           )}
         </div>
-      </>
-    )
-  ) : detailLoading && !selected ? (
-    <CardSkeleton count={6} />
-  ) : (
-    <div className={styles.sectionBlock}>
-      <div className={styles.sectionTitle}>
-        {t("skillPackages.rootSkills")}
-        <span className={styles.sectionCount}>{skills.length}</span>
-        <span className={styles.sectionActions}>{skillsViewToggle}</span>
-      </div>
-      {skills.length === 0 ? (
-        <EmptyState
-          variant="mascot"
-          title={t("skillPackages.emptySkills")}
-          description={t("skillPackages.subtitle")}
-          actionLabel={canMutate ? t("skillPackages.createSkill") : undefined}
-          onAction={canMutate ? () => void openCreateSkill() : undefined}
-        />
-      ) : (
-        skillCards(skills)
-      )}
+      </section>
     </div>
   );
 
@@ -869,15 +847,7 @@ export default function SkillPackagesPage() {
           />
         </div>
       ) : (
-        <div className={styles.libraryLayout}>
-          {detailLoading ? (
-            <div className={styles.detailLoadingOverlay}>
-              <Spin />
-            </div>
-          ) : null}
-          {libraryToolbar}
-          <div className={skillStyles.skillsListArea}>{libraryBody}</div>
-        </div>
+        <div className={styles.libraryLayout}>{libraryBody}</div>
       )}
 
       <Drawer

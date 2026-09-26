@@ -624,10 +624,88 @@
   min-height: 0;
   border: 1px solid var(--fn-border-secondary);
   border-radius: var(--fn-radius-lg);
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden;
   background: var(--fn-bg-container);
-  padding: 16px;
+}
+
+.splitLayout {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+}
+
+.packagesPane,
+.skillsPane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+
+.packagesPane {
+  width: 320px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--fn-border-secondary);
+  background: var(--fn-bg-secondary);
+}
+
+.skillsPane {
+  flex: 1;
+}
+
+.paneHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--fn-border-secondary);
+}
+
+.paneTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: var(--fn-text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.paneActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.paneClearBtn {
+  padding: 0 6px;
+  height: 18px;
+  border: 1px solid var(--fn-border-primary);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--fn-text-tertiary);
+  font-size: 11px;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--fn-color-brand);
+    border-color: var(--fn-color-brand);
+  }
+}
+
+.paneBody {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 12px 14px 16px;
 }
 
 .sectionBlock {
@@ -663,8 +741,8 @@
 
 .folderGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 12px;
+  grid-template-columns: 1fr;
+  gap: 10px;
 }
 
 .folderCard {
@@ -684,6 +762,12 @@
     border-color: var(--fn-color-brand);
     background: var(--fn-bg-hover);
   }
+}
+
+.folderCardActive {
+  border-color: var(--fn-color-brand);
+  background: var(--fn-bg-hover);
+  box-shadow: 0 0 0 1px var(--fn-color-brand);
 }
 
 .folderIcon {
