@@ -329,19 +329,46 @@ export default function AvatarDropdown({
   );
 
   const panelHeader = (
-    <div className={styles.menuHeader}>
-      <div className={styles.menuHeaderTop}>
-        <span className={styles.menuDisplayName}>{displayName}</span>
-        <Tag
-          color={role === "admin" ? "blue" : "default"}
-          className={styles.roleTag}
-        >
-          {roleLabel}
-        </Tag>
+    <div className={styles.profileCard}>
+      <Avatar
+        size={52}
+        className={styles.profileAvatar}
+        style={{
+          background:
+            "linear-gradient(145deg, var(--fn-color-brand) 0%, var(--fn-color-brand-soft, var(--fn-color-brand-hover)) 100%)",
+          fontSize: 22,
+          fontWeight: 600,
+          flexShrink: 0,
+          boxShadow:
+            "0 6px 16px var(--fn-color-brand-shadow, rgba(0,0,0,0.16))",
+        }}
+      >
+        {initials}
+      </Avatar>
+      <div className={styles.profileMeta}>
+        <div className={styles.profileNameRow}>
+          <span className={styles.profileName}>{displayName}</span>
+          <Tag
+            color={role === "admin" ? "blue" : "default"}
+            className={styles.roleTag}
+          >
+            {roleLabel}
+          </Tag>
+        </div>
+        {user?.username && (
+          <span className={styles.profileHandle}>@{user.username}</span>
+        )}
       </div>
-      {user?.username && (
-        <span className={styles.menuHandle}>@{user.username}</span>
-      )}
+      <Tooltip title={t("auth.logout")}>
+        <button
+          type="button"
+          className={styles.profileLogout}
+          onClick={() => void handleLogout()}
+          aria-label={t("auth.logout")}
+        >
+          <LogOut size={16} strokeWidth={1.8} />
+        </button>
+      </Tooltip>
     </div>
   );
 
@@ -378,14 +405,6 @@ export default function AvatarDropdown({
           <span>{t("account.checkUpdates")}</span>
         </button>
       )}
-      <button
-        type="button"
-        className={`${styles.panelLink} ${styles.menuItemDanger}`}
-        onClick={() => void handleLogout()}
-      >
-        <LogOut size={14} strokeWidth={1.8} />
-        <span>{t("auth.logout")}</span>
-      </button>
     </div>
   );
 
