@@ -25,15 +25,21 @@ function contrastRatio(foreground: string, background: string): number {
 describe("theme palettes", () => {
   it("exposes the curated palette set", () => {
     expect(VALID_PALETTES).toEqual([
+      "official",
       "rose",
       "tech",
-      "indigo",
-      "teal",
       "violet",
       "emerald",
       "amber",
       "slate",
     ]);
+  });
+
+  it("keeps official red readable with white text", () => {
+    expect(ANTD_BRAND_TOKENS.official.light.colorPrimary).toBe("#A61B1B");
+    expect(ANTD_BRAND_TOKENS.official.light.colorPrimaryHover).toBe("#8B1515");
+    expect(ANTD_BRAND_TOKENS.official.light.colorPrimaryActive).toBe("#701010");
+    expect(ANTD_BRAND_TOKENS.official.dark.colorLink).toBe("#F5A5A5");
   });
 
   it("keeps the historic Elegant Rose default brand tokens", () => {

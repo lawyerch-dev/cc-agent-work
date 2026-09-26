@@ -3528,10 +3528,9 @@
     "themeLight": "Light",
     "themeDark": "Dark",
     "palette": {
+      "official": "Official Red",
       "rose": "Rose",
       "tech": "Tech",
-      "indigo": "Indigo",
-      "teal": "Teal",
       "violet": "Violet",
       "emerald": "Emerald",
       "amber": "Amber",

@@ -85,13 +85,13 @@ export function expertPaletteColor(palette: ThemePalette): string {
 }
 
 /** Fallback accent when a subagent has no usable color. */
-export const DEFAULT_SUBAGENT_ACCENT = PALETTE_SWATCH.indigo;
+export const DEFAULT_SUBAGENT_ACCENT = PALETTE_SWATCH.tech;
 
 /**
  * Resolve a subagent frontmatter color for card chrome.
  *
  * Accepts curated palette keys (`rose`), hex (`#4B74FA`), and CSS named
- * colors (`orange`). Anything else falls back to indigo.
+ * colors (`orange`). Anything else falls back to tech.
  */
 export function resolveSubagentAccent(
   color: string | null | undefined,

@@ -11,16 +11,16 @@ import {
 describe("resolveExpertPalette", () => {
   it("matches exact curated swatches", () => {
     expect(resolveExpertPalette("#E85D75")).toBe("rose");
-    expect(resolveExpertPalette("#6366F1")).toBe("indigo");
+    expect(resolveExpertPalette("#4B74FA")).toBe("tech");
   });
 
-  it("falls back to rose when color is missing", () => {
-    expect(resolveExpertPalette(null)).toBe("rose");
-    expect(resolveExpertPalette(undefined)).toBe("rose");
+  it("falls back to official when color is missing", () => {
+    expect(resolveExpertPalette(null)).toBe("official");
+    expect(resolveExpertPalette(undefined)).toBe("official");
   });
 
   it("snaps nearby template pastels onto the nearest swatch", () => {
-    expect(resolveExpertPalette("#e8f4ff")).toBe("indigo");
+    expect(resolveExpertPalette("#e8f4ff")).toBe("tech");
   });
 
   it("returns the hex for a palette key", () => {

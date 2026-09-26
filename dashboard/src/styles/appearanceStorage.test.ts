@@ -17,7 +17,7 @@ afterEach(() => {
 });
 
 describe("appearanceStorage", () => {
-  it("defaults to system preference and rose palette", () => {
+  it("defaults to system preference and official palette", () => {
     expect(readStoredAppearance().preference).toBe("system");
     expect(readStoredAppearance().palette).toBe(DEFAULT_PALETTE);
   });
@@ -34,12 +34,12 @@ describe("appearanceStorage", () => {
   it("reads unified JSON under the theme key", () => {
     localStorage.setItem(
       THEME_STORAGE_KEY,
-      JSON.stringify({ preference: "light", palette: "indigo" }),
+      JSON.stringify({ preference: "light", palette: "violet" }),
     );
 
     const appearance = readStoredAppearance();
     expect(appearance.preference).toBe("light");
-    expect(appearance.palette).toBe("indigo");
+    expect(appearance.palette).toBe("violet");
   });
 
   it("reads the custom palette with its brand hex", () => {
@@ -71,7 +71,7 @@ describe("appearanceStorage", () => {
   });
 
   it("writes preference and palette as different fields in the same key", () => {
-    writeStoredAppearance({ preference: "system", palette: "teal" });
+    writeStoredAppearance({ preference: "system", palette: "emerald" });
     localStorage.setItem(LEGACY_PALETTE_STORAGE_KEY, "should-be-removed");
 
     writeStoredAppearance({

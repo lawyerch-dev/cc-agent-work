@@ -1,10 +1,9 @@
 /** Brand palettes — orthogonal to light/dark mode (`data-theme`). */
 
 export type ThemePalette =
+  | "official"
   | "rose"
   | "tech"
-  | "indigo"
-  | "teal"
   | "violet"
   | "emerald"
   | "amber"
@@ -12,10 +11,9 @@ export type ThemePalette =
   | "custom";
 
 export const VALID_PALETTES: ThemePalette[] = [
+  "official",
   "rose",
   "tech",
-  "indigo",
-  "teal",
   "violet",
   "emerald",
   "amber",
@@ -25,7 +23,7 @@ export const VALID_PALETTES: ThemePalette[] = [
 /** Curated palettes only — "custom" is handled separately via a hex value. */
 export const CURATED_PALETTES: ThemePalette[] = [...VALID_PALETTES];
 
-export const DEFAULT_PALETTE: ThemePalette = "rose";
+export const DEFAULT_PALETTE: ThemePalette = "official";
 export const DEFAULT_CUSTOM_COLOR = "#4B74FA";
 
 /** True when the value is one of the curated palette keys (not "custom"/hex). */
@@ -44,10 +42,9 @@ export const PALETTE_STORAGE_KEY = LEGACY_PALETTE_STORAGE_KEY;
 
 /** Swatch color shown in the palette picker (light brand). */
 export const PALETTE_SWATCH: Record<ThemePalette, string> = {
+  official: "#C00000",
   rose: "#E85D75",
   tech: "#4B74FA",
-  indigo: "#6366F1",
-  teal: "#0D9488",
   violet: "#7C3AED",
   emerald: "#10B981",
   amber: "#F59E0B",
@@ -74,6 +71,27 @@ export const ANTD_BRAND_TOKENS: Record<
   Exclude<ThemePalette, "custom">,
   { light: AntdBrandTokens; dark: AntdBrandTokens }
 > = {
+  official: {
+    light: {
+      colorPrimary: "#A61B1B",
+      colorPrimaryHover: "#8B1515",
+      colorPrimaryActive: "#701010",
+      colorLink: "#A61B1B",
+    },
+    dark: {
+      colorPrimary: "#A61B1B",
+      colorPrimaryBg: "rgba(192, 0, 0, 0.14)",
+      colorPrimaryBgHover: "rgba(192, 0, 0, 0.2)",
+      colorPrimaryBorder: "rgba(192, 0, 0, 0.3)",
+      colorPrimaryBorderHover: "rgba(192, 0, 0, 0.4)",
+      colorPrimaryHover: "#8B1515",
+      colorPrimaryActive: "#701010",
+      colorPrimaryText: "#F5A5A5",
+      colorPrimaryTextHover: "#F8C4C4",
+      colorPrimaryTextActive: "#C00000",
+      colorLink: "#F5A5A5",
+    },
+  },
   rose: {
     light: {
       colorPrimary: "#E85D75",
@@ -114,48 +132,6 @@ export const ANTD_BRAND_TOKENS: Record<
       colorPrimaryTextHover: "#9BB4FD",
       colorPrimaryTextActive: "#4B74FA",
       colorLink: "#7B9BFC",
-    },
-  },
-  indigo: {
-    light: {
-      colorPrimary: "#4F46E5",
-      colorPrimaryHover: "#4338CA",
-      colorPrimaryActive: "#3730A3",
-      colorLink: "#4F46E5",
-    },
-    dark: {
-      colorPrimary: "#4F46E5",
-      colorPrimaryBg: "rgba(99, 102, 241, 0.14)",
-      colorPrimaryBgHover: "rgba(99, 102, 241, 0.2)",
-      colorPrimaryBorder: "rgba(99, 102, 241, 0.3)",
-      colorPrimaryBorderHover: "rgba(99, 102, 241, 0.4)",
-      colorPrimaryHover: "#4338CA",
-      colorPrimaryActive: "#3730A3",
-      colorPrimaryText: "#818CF8",
-      colorPrimaryTextHover: "#A5B4FC",
-      colorPrimaryTextActive: "#6366F1",
-      colorLink: "#818CF8",
-    },
-  },
-  teal: {
-    light: {
-      colorPrimary: "#0F766E",
-      colorPrimaryHover: "#115E59",
-      colorPrimaryActive: "#134E4A",
-      colorLink: "#0F766E",
-    },
-    dark: {
-      colorPrimary: "#0F766E",
-      colorPrimaryBg: "rgba(13, 148, 136, 0.14)",
-      colorPrimaryBgHover: "rgba(13, 148, 136, 0.2)",
-      colorPrimaryBorder: "rgba(13, 148, 136, 0.3)",
-      colorPrimaryBorderHover: "rgba(13, 148, 136, 0.4)",
-      colorPrimaryHover: "#115E59",
-      colorPrimaryActive: "#134E4A",
-      colorPrimaryText: "#2DD4BF",
-      colorPrimaryTextHover: "#5EEAD4",
-      colorPrimaryTextActive: "#0D9488",
-      colorLink: "#2DD4BF",
     },
   },
   violet: {
