@@ -26,6 +26,18 @@ def test_unknown_id_is_none() -> None:
     assert cat.get("nope") is None
 
 
+def test_ordered_summaries_follow_company_structure() -> None:
+    cat = TeamCatalog(default_library_root())
+    cat.refresh()
+    assert [s.id for s in cat.ordered_summaries("zh")] == [
+        "general-office",
+        "hr-admin",
+        "finance",
+        "sales",
+        "operations",
+    ]
+
+
 def test_server_exposes_team_catalog() -> None:
     from octop.infra.server import OctopServer
 

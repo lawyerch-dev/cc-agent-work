@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import type { OctopAgent } from "../../context/AgentContext";
-import { sortTeams, teamCodeNumber } from "./teamOrder";
+import {
+  sortTeamTemplates,
+  sortTeams,
+  teamCodeNumber,
+  templateOrdinal,
+} from "./teamOrder";
 
 function team(
   agent_id: string,
@@ -39,5 +44,37 @@ describe("teamCodeNumber", () => {
     expect(teamCodeNumber("team-042")).toBe("042");
     expect(teamCodeNumber(null)).toBeNull();
     expect(teamCodeNumber("x")).toBeNull();
+  });
+});
+
+describe("sortTeamTemplates", () => {
+  it("orders by company structure, unknown ids last", () => {
+    const rows = [
+      { id: "sales" },
+      { id: "zz-extra" },
+      { id: "general-office" },
+      { id: "finance" },
+      { id: "hr-admin" },
+      { id: "operations" },
+    ];
+    expect(sortTeamTemplates(rows).map((r) => r.id)).toEqual([
+      "general-office",
+      "hr-admin",
+      "finance",
+      "sales",
+      "operations",
+      "zz-extra",
+    ]);
+  });
+});
+
+describe("templateOrdinal", () => {
+  it("uses the stable company-structure position", () => {
+    expect(templateOrdinal("general-office")).toBe("001");
+    expect(templateOrdinal("hr-admin")).toBe("002");
+    expect(templateOrdinal("finance")).toBe("003");
+    expect(templateOrdinal("sales")).toBe("004");
+    expect(templateOrdinal("operations")).toBe("005");
+    expect(templateOrdinal("zz-extra")).toBeNull();
   });
 });

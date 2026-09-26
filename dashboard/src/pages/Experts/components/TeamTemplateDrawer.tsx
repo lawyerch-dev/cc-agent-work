@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, Drawer, Empty, Spin, Tag, Typography } from "antd";
 import { message } from "@/utils/antdMessage";
@@ -9,6 +9,8 @@ import {
   type TeamTemplateSummary,
 } from "../../../api/modules/teams";
 import { apiErrorMessage } from "../../../utils/apiError";
+import { sortTeamTemplates, templateOrdinal } from "../teamOrder";
+import styles from "../index.module.less";
 
 interface TeamTemplateDrawerProps {
   open: boolean;
@@ -61,6 +63,11 @@ export default function TeamTemplateDrawer({
     }
   };
 
+  const orderedTemplates = useMemo(
+    () => sortTeamTemplates(templates),
+    [templates],
+  );
+
   return (
     <Drawer
       open={open}
@@ -72,54 +79,53 @@ export default function TeamTemplateDrawer({
         <div style={{ textAlign: "center", padding: 32 }}>
           <Spin />
         </div>
-      ) : templates.length === 0 ? (
+      ) : orderedTemplates.length === 0 ? (
         <Empty />
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {templates.map((tpl) => (
-            <div
-              key={tpl.id}
-              style={{
-                border: "1px solid var(--fn-border, #eee)",
-                borderRadius: 8,
-                padding: 16,
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: 12,
-                }}
-              >
-                <strong>{tpl.label}</strong>
-                <Button
-                  type="primary"
-                  size="small"
-                  loading={creatingId === tpl.id}
-                  onClick={() => void handleCreate(tpl.id)}
+          {orderedTemplates.map((tpl) => {
+            const ordinal = templateOrdinal(tpl.id);
+            return (
+              <div key={tpl.id} className={styles.templateCard}>
+                {ordinal ? (
+                  <span className={styles.teamCardOrdinal}>{ordinal}</span>
+                ) : null}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: 12,
+                  }}
                 >
-                  {t("experts.teams.create")}
-                </Button>
-              </div>
-              <Typography.Paragraph
-                type="secondary"
-                style={{ margin: "8px 0" }}
-              >
-                {tpl.description}
-              </Typography.Paragraph>
-              {tpl.suggested_roles.length > 0 && (
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-                  {tpl.suggested_roles.map((role) => (
-                    <Tag key={role.name} title={role.description}>
-                      {role.name}
-                    </Tag>
-                  ))}
+                  <strong>{tpl.label}</strong>
+                  <Button
+                    type="primary"
+                    size="small"
+                    loading={creatingId === tpl.id}
+                    onClick={() => void handleCreate(tpl.id)}
+                  >
+                    {t("experts.teams.create")}
+                  </Button>
                 </div>
-              )}
-            </div>
-          ))}
+                <Typography.Paragraph
+                  type="secondary"
+                  style={{ margin: "8px 0" }}
+                >
+                  {tpl.description}
+                </Typography.Paragraph>
+                {tpl.suggested_roles.length > 0 && (
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                    {tpl.suggested_roles.map((role) => (
+                      <Tag key={role.name} title={role.description}>
+                        {role.name}
+                      </Tag>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </Drawer>

@@ -14,6 +14,14 @@ vi.mock("../../../api/modules/teams", () => ({
         color: null,
         suggested_roles: [],
       },
+      {
+        id: "general-office",
+        label: "总经办",
+        description: "统筹",
+        icon: null,
+        color: null,
+        suggested_roles: [],
+      },
     ]),
   },
 }));
@@ -21,8 +29,20 @@ vi.mock("../../../api/modules/teams", () => ({
 describe("TeamTemplateDrawer", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("lists templates", async () => {
+  it("lists templates in company order with corner ordinals", async () => {
     render(<TeamTemplateDrawer open onClose={() => {}} onCreated={() => {}} />);
-    await waitFor(() => expect(screen.getByText("财务部")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText("总经办")).toBeInTheDocument());
+    const officeCard = screen
+      .getByText("总经办")
+      .closest("div[class*=templateCard]");
+    const financeCard = screen
+      .getByText("财务部")
+      .closest("div[class*=templateCard]");
+    // Company order: general-office (001) before finance (003).
+    expect(officeCard).toHaveTextContent("001");
+    expect(financeCard).toHaveTextContent("003");
+    expect(officeCard!.compareDocumentPosition(financeCard!)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
   });
 });

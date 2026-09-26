@@ -89,7 +89,7 @@ async def list_team_templates(
                 for role in summary.suggested_roles
             ],
         }
-        for summary in catalog.list_summaries(loc)
+        for summary in catalog.ordered_summaries(loc)
     ]
 
 

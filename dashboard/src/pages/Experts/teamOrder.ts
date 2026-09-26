@@ -24,3 +24,31 @@ export function teamCodeNumber(code: string | null | undefined): string | null {
   const match = /^team-(\d+)$/.exec((code ?? "").trim());
   return match ? match[1].padStart(3, "0") : null;
 }
+
+/** Company-structure order for bundled team templates (人财物: 管理/人/财/业务/物). */
+export const TEAM_TEMPLATE_ORDER: readonly string[] = [
+  "general-office",
+  "hr-admin",
+  "finance",
+  "sales",
+  "operations",
+];
+
+/** Sort templates into company-structure order (unknown ids last, then id). */
+export function sortTeamTemplates<T extends { id: string }>(
+  templates: T[],
+): T[] {
+  const rank = new Map(TEAM_TEMPLATE_ORDER.map((id, index) => [id, index]));
+  return [...templates].sort((a, b) => {
+    const ra = rank.get(a.id) ?? Number.MAX_SAFE_INTEGER;
+    const rb = rank.get(b.id) ?? Number.MAX_SAFE_INTEGER;
+    if (ra !== rb) return ra - rb;
+    return a.id.localeCompare(b.id);
+  });
+}
+
+/** Stable ordinal from company-structure position (`001`…), or null if unknown. */
+export function templateOrdinal(id: string): string | null {
+  const index = TEAM_TEMPLATE_ORDER.indexOf(id);
+  return index >= 0 ? String(index + 1).padStart(3, "0") : null;
+}

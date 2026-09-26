@@ -19,6 +19,7 @@ from octop.infra.errors import ErrorCode, OctopError
 from octop.infra.utils.paths import PathLayout
 
 EXPECTED = {"general-office", "hr-admin", "finance", "sales", "operations"}
+EXPECTED_ORDER = ["general-office", "hr-admin", "finance", "sales", "operations"]
 
 
 def _server(tmp_path: Path) -> SimpleNamespace:
@@ -43,8 +44,11 @@ def _user() -> SimpleNamespace:
 async def test_list_create_and_seed(tmp_path: Path) -> None:
     server = _server(tmp_path)
     user = _user()
-    ids = {t["id"] for t in await teams_router.list_team_templates(user=user, server=server)}
+    rows = await teams_router.list_team_templates(user=user, server=server)
+    ids = {t["id"] for t in rows}
     assert ids == EXPECTED
+    # Company-structure order (人财物), not directory order.
+    assert [t["id"] for t in rows] == EXPECTED_ORDER
 
     created = await teams_router.create_team_from_template_endpoint(
         "finance", user=user, server=server
