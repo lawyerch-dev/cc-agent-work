@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import type { ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
@@ -119,6 +120,7 @@ function NavItemButton({
   role,
   hasUpdate,
   t,
+  trailing,
 }: {
   item: NavItem;
   active: boolean;
@@ -127,6 +129,8 @@ function NavItemButton({
   role: "admin" | "user" | null;
   hasUpdate: boolean;
   t: TFunction<"translation", undefined>;
+  /** Optional control rendered to the right of the nav item (e.g. rail toggle). */
+  trailing?: ReactNode;
 }) {
   return (
     <div
@@ -156,7 +160,7 @@ function NavItemButton({
             : "var(--fn-text-secondary)",
           fontSize: typeSize(14, isMobile),
           fontWeight: active ? 500 : 400,
-          paddingRight: 12,
+          paddingRight: trailing ? 4 : 12,
         }}
       >
         <span
@@ -210,6 +214,7 @@ function NavItemButton({
           )}
         </span>
       </button>
+      {trailing}
     </div>
   );
 }
@@ -223,6 +228,8 @@ function NavList({
   sectionFilter = "all",
   /** Group keys whose section headers are omitted (items still render). */
   hideGroupHeaderKeys,
+  /** Rendered to the right of the "对话" item (session-list toggle). */
+  chatRailToggle,
 }: {
   selectedKey: string;
   onNavigate: (path: string) => void;
@@ -232,6 +239,7 @@ function NavList({
   /** all = classic; primary = top flat entries; grouped = settings/control/admin */
   sectionFilter?: "all" | "primary" | "grouped";
   hideGroupHeaderKeys?: ReadonlySet<string>;
+  chatRailToggle?: ReactNode;
 }) {
   const { t } = useTranslation();
   const role = useUserRole();
@@ -288,6 +296,7 @@ function NavList({
                     role={role}
                     hasUpdate={hasUpdate}
                     t={t}
+                    trailing={item.key === "chat" ? chatRailToggle : undefined}
                   />
                 ))}
               </div>
@@ -328,6 +337,7 @@ function NavList({
                     role={role}
                     hasUpdate={hasUpdate}
                     t={t}
+                    trailing={item.key === "chat" ? chatRailToggle : undefined}
                   />
                 ))}
               </div>
@@ -429,6 +439,43 @@ export default function Sidebar({
     }
   }, [collapsed, isMinimal, chatSidebarOpen, onToggle, setChatSidebarOpen]);
 
+  // Classic layout: a small toggle next to "对话" opens/closes the session list.
+  const chatRailToggle =
+    !isMinimal && !isMobile && onChatPath ? (
+      <button
+        type="button"
+        className={`${styles.chatRailExpandBtn} ${
+          chatSidebarOpen ? styles.chatRailExpandBtnActive : ""
+        }`}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (chatSidebarOpen) {
+            setChatSidebarOpen(false);
+            return;
+          }
+          // Keep the "expand both rails" contract used by the old rail control.
+          window.dispatchEvent(new Event(EXPAND_CHAT_RAIL_EVENT));
+          setChatSidebarOpen(true);
+        }}
+        aria-label={
+          chatSidebarOpen
+            ? t("chat.collapseHistorySidebar", "收起对话历史")
+            : t("chat.expandHistorySidebar", "展开对话历史")
+        }
+        title={
+          chatSidebarOpen
+            ? t("chat.collapseHistorySidebar", "收起对话历史")
+            : t("chat.expandHistorySidebar", "展开对话历史")
+        }
+      >
+        {chatSidebarOpen ? (
+          <PanelLeftClose size={14} strokeWidth={1.8} aria-hidden />
+        ) : (
+          <PanelLeftOpen size={14} strokeWidth={1.8} aria-hidden />
+        )}
+      </button>
+    ) : null;
+
   const brandInner = (
     <>
       <img
@@ -514,6 +561,7 @@ export default function Sidebar({
       isMobile={isMobile}
       isGroupCollapsed={isGroupCollapsed}
       toggleGroup={toggleGroup}
+      chatRailToggle={chatRailToggle}
     />
   );
 

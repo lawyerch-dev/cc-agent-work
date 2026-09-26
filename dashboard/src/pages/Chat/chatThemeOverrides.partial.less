@@ -22,20 +22,15 @@
 
   .sidebar {
     height: 100%;
-    /* Vertical line drawn by RailEdgeControl */
     border-right: none;
   }
-}
 
-.chatRailEdgeOpen {
-  right: -8px;
-}
-
-.chatRailEdgeClosed {
-  /* Align with MainLayout nav RailEdgeControl (edgeEnd: right -8px / width 16px). */
-  left: -8px !important;
-  right: auto !important;
-  width: 16px;
+  /* Divider between the open session list and the chat area. */
+  .sidebar.sidebarOpen {
+    @media (min-width: 768px) {
+      border-right: 1px solid var(--fn-chat-divider, var(--fn-border-primary));
+    }
+  }
 }
 
 .sidebarWrapper {

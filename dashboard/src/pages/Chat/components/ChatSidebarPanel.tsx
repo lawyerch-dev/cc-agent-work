@@ -1,11 +1,9 @@
-import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import type { RefObject } from "react";
 import SessionList from "./SessionList";
 import MinimalAgentSessionNav from "./MinimalAgentSessionNav";
 import type { Session } from "../hooks/useSessions";
 import type { OctopAgent } from "../../../context/AgentContext";
-import RailEdgeControl from "../../../components/RailEdgeControl";
 import styles from "../index.module.less";
 
 /** Dispatched when the chat history rail expand control is clicked. */
@@ -75,16 +73,6 @@ export default function ChatSidebarPanel({
   navEmbedded = false,
 }: ChatSidebarPanelProps) {
   const { t } = useTranslation();
-
-  const handleRailToggle = useCallback(() => {
-    if (sidebarOpen) {
-      onSidebarOpenChange(false);
-      return;
-    }
-    // MainLayout may also expand the nav when both rails were collapsed.
-    window.dispatchEvent(new Event(EXPAND_CHAT_RAIL_EVENT));
-    onSidebarOpenChange(true);
-  }, [sidebarOpen, onSidebarOpenChange]);
 
   const sessionList = navEmbedded ? (
     <MinimalAgentSessionNav
@@ -169,19 +157,6 @@ export default function ChatSidebarPanel({
           />
         )}
       </div>
-
-      {!isMobile && (
-        <RailEdgeControl
-          expanded={sidebarOpen}
-          onToggle={handleRailToggle}
-          side={sidebarOpen ? "end" : "start"}
-          /* Collapsed: share the nav rail divider — avoid a second gapped line. */
-          showLine={sidebarOpen}
-          className={
-            sidebarOpen ? styles.chatRailEdgeOpen : styles.chatRailEdgeClosed
-          }
-        />
-      )}
     </div>
   );
 }
