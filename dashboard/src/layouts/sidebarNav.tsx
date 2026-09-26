@@ -18,6 +18,7 @@ import {
   GraduationCap,
   Shield,
   PanelsTopLeft,
+  FolderKanban,
 } from "lucide-react";
 import type { OctopUser } from "../api/modules/auth";
 import { navAllowed, userCan } from "../utils/permissions";
@@ -49,6 +50,7 @@ export interface NavSection {
  */
 export const SIDEBAR_GROUPED_NAV_KEYS = [
   "personalization",
+  "assets",
   "channels",
   "connectors",
   "skill-packages",
@@ -114,8 +116,19 @@ export function buildNavSections(
       labelKey: "nav.personalization",
     },
   ];
+
+  // Company assets hub: overview + shared resource libraries.
+  const assetItems: NavItem[] = [];
+  if (navAllowed(user, "assets")) {
+    assetItems.push({
+      key: "assets",
+      path: "/assets",
+      icon: <FolderKanban size={iconSize} strokeWidth={iconStroke} />,
+      labelKey: "nav.assets",
+    });
+  }
   if (navAllowed(user, "channels")) {
-    settingsItems.push({
+    assetItems.push({
       key: "channels",
       path: "/personalization/channels",
       icon: <Waypoints size={iconSize} strokeWidth={iconStroke} />,
@@ -123,7 +136,7 @@ export function buildNavSections(
     });
   }
   if (navAllowed(user, "connectors")) {
-    settingsItems.push({
+    assetItems.push({
       key: "connectors",
       path: "/connectors",
       icon: <Link2 size={iconSize} strokeWidth={iconStroke} />,
@@ -131,7 +144,7 @@ export function buildNavSections(
     });
   }
   if (navAllowed(user, "skill-packages")) {
-    settingsItems.push({
+    assetItems.push({
       key: "skill-packages",
       path: "/skill-packages",
       icon: <Package size={iconSize} strokeWidth={iconStroke} />,
@@ -139,13 +152,17 @@ export function buildNavSections(
     });
   }
   if (navAllowed(user, "knowledge-bases")) {
-    settingsItems.push({
+    assetItems.push({
       key: "knowledge-bases",
       path: "/knowledge-bases",
       icon: <Database size={iconSize} strokeWidth={iconStroke} />,
       labelKey: "nav.knowledgeBases",
     });
   }
+  if (assetItems.length > 0) {
+    sections.push({ groupKey: "nav.assetsGroup", items: assetItems });
+  }
+
   if (settingsItems.length > 0) {
     sections.push({ groupKey: "nav.settings", items: settingsItems });
   }
