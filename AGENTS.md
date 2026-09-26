@@ -72,7 +72,7 @@ docs/                         human-written reference (`api.md`, `architecture.m
                               + published docs site (`index.html`, `guide/`, `css/`, `js/`)
 plugins/                      sample plugin demos (tool / skill / hook / ui-card)
 fnos/                         FnOS packaging (docker + native)
-scripts/                      release and utility scripts
+scripts/                      release and utility scripts (incl. scripts/start.sh one-click start)
 tests/                        pytest (`unit/`, `integration/`)
 ```
 
@@ -202,6 +202,9 @@ Frontend talks to Octop **only** via `/api` HTTP — never import or assume Pyth
 
 ```bash
 make install-hooks                      # once per clone: enable .githooks pre-commit
+make start                              # one-click: stop leftovers, then desktop shell (default)
+make start-dev                          # one-click: stop leftovers, then Vite + backend (browser)
+make stop                               # stop existing desktop/dev instances
 make all                                # format-all + lint + typecheck + test (ship bar)
 make format-all                         # backend Ruff + dashboard Prettier write
 make lint                               # ruff check + format check
@@ -213,15 +216,24 @@ uv run pytest tests/unit -x -q        # unit tests only, stop on first fail
 uv run pytest tests/integration -x -q # integration tests only
 cd dashboard && npx tsc -b             # frontend typecheck (after UI changes)
 make build-frontend                     # dashboard/ → src/octop/dashboard/
-desktop/package-dev.sh                  # desktop GUI shell (needs Go 1.25+ / wails3)
+desktop/package-dev.sh                  # raw desktop entry (prefer make start)
 ```
 
+**One-click start (`scripts/start.sh`):** `make start` (desktop, default) and
+`make start-dev` (browser) always **stop existing instances first** and free
+ports 8088 / 5173 / 5174 / 9245 before starting, so a second launch never
+stacks desktop windows or hits address-in-use errors. Prefer these over
+running `desktop/package-dev.sh` / `make dev` directly. `make stop` only tears
+down. Equivalent: `scripts/start.sh desktop|dev|stop`.
+
 **Desktop GUI vs remote desktop:** `desktop/` is the Wails v3 native shell that
-loads the console in a window (dev entry: `desktop/package-dev.sh`). It is not
+loads the console in a window (dev entry: `make start` →
+`desktop/package-dev.sh`). It is not
 `src/octop/infra/desktop/` (remote-desktop streaming) or
 `src/octop/api/routers/desktop/` (that feature's HTTP surface). The shell reads
 the built SPA from the backend URL — run `make build-frontend` first or the
-window hits 404 on `/` and `/sw.js`.
+window hits 404 on `/` and `/sw.js` (`make start` does this automatically when
+the bundle is missing). Desktop also needs Go 1.25+ and `wails3` on `PATH`.
 
 **Git hooks (required for local commits):** after cloning, run **`make install-hooks`** once. That sets `core.hooksPath=.githooks` so every `git commit` runs **`make all`** (which first runs **`format-all`**: backend Ruff + dashboard Prettier write, then lint / typecheck / test) and dashboard **`npm run build`**. Formatted files that were already staged are re-added so the commit includes the formatted content. Bypass only in emergencies: `SKIP_PRECOMMIT=1 git commit …` or `git commit --no-verify`. Do **not** skip hooks to land red tests — fix the suite first (CI runs on Linux **and** Windows).
 
@@ -392,6 +404,7 @@ Boundary rules are in [§5](#5-module-boundaries). Additionally:
 | Internationalization (dashboard) | `dashboard/src/locales/`, `dashboard/src/i18n.ts`, `dashboard/src/utils/apiError.ts` |
 | Server timezone (config.json) | `default_timezone` in `config.py`; `GET /api/settings/timezone`; `dashboard/src/hooks/useServerTimezone.ts`; `dashboard/src/utils/formatMessageTime.ts` |
 | Test layout & shared helpers | `tests/support/` (`fakes`, `auth`, `http`, `scenarios`, `app`), `tests/integration/conftest.py`, `tests/unit/{db,cron,gateway,agents,api,cli}/` |
+| How to start locally (desktop / browser) | `make start` / `make start-dev` / `make stop` → `scripts/start.sh` |
 | Pre-commit hooks | `make install-hooks` → `.githooks/pre-commit` (`make all` incl. `format-all` + dashboard build) |
 | What is a Thread? | `infra/gateway/threads.py`, `infra/db/repos/threads.py` |
 | Workspace backend resolution | `infra/backend/resolver.py`, `infra/backend/adapter.py` |
@@ -403,7 +416,7 @@ Boundary rules are in [§5](#5-module-boundaries). Additionally:
 | Backup & restore | `infra/backup/`, `api/routers/backup.py`, `cli/commands/backup.py` |
 | Voice STT/TTS | `infra/voice/`, `api/routers/voice.py` |
 | Plugin demos & contract | `plugins/README.md`; bundled product plugins in `infra/agents/plugins/bundled/` |
-| Desktop GUI shell vs remote desktop | `desktop/` (Wails shell) vs `infra/desktop/` + `api/routers/desktop/` |
+| Desktop GUI shell vs remote desktop | `desktop/` (Wails shell; `make start`) vs `infra/desktop/` + `api/routers/desktop/` |
 | OpenAPI tags and API intro | `api/openapi_meta.py` |
 | Human-readable API reference | `docs/api.md` |
 | SharedServices / RepoBundle | `infra/db/services.py` |

@@ -66,6 +66,9 @@ curl -fsSL https://finnie-1258344699.cos.ap-guangzhou.myqcloud.com/octop/install
 ### 常用命令
 
 ```bash
+make start               # 桌面端一键启动（默认）
+make start-dev           # 浏览器开发模式一键启动
+make stop                # 停止现有实例
 make install-hooks     # 启用 git hooks（提交前跑 make all）
 make all               # format + lint + typecheck + test（提交门禁）
 make format            # 后端 Ruff 自动格式化

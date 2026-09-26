@@ -104,6 +104,7 @@ scripts/dev-local-link.sh
 docs/superpowers/
 
 # Local agent tooling / plugin-installed skills (not project source)
+.agent/
 .claude/
 scripts/lh_image_install_octop_tencentos.sh
 .worktrees/

@@ -56,14 +56,22 @@ with `src/octop/infra/desktop/` (remote-desktop streaming) or
 Two ways to run against local source:
 
 ```bash
-# 1) Recommended — starts Octop + the shell, tears both down on exit
+# 1) Recommended — one-click (stop leftovers first, then Octop + shell)
+make start                 # from repo root; builds SPA if missing
+#    or: scripts/start.sh desktop
+
+# 2) Manual
 make build-frontend          # required: ship SPA into src/octop/dashboard/
 desktop/package-dev.sh
 
-# 2) Against an already-running backend
+# 3) Against an already-running backend
 cd desktop/src
 OCTOP_DESKTOP_URL=http://127.0.0.1:8088 wails3 dev
 ```
+
+`make start` always stops any existing desktop/dev instance and frees ports
+8088 / 5173 / 5174 / 9245 before starting, so repeat launches never stack
+windows or hit address-in-use errors. Use `make stop` to tear down only.
 
 Without `make build-frontend`, the backend returns 404 for `/` and `/sw.js` and
 the desktop window shows a failed-resource error. See the root README
