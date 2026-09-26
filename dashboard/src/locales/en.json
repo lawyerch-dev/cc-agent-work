@@ -203,7 +203,7 @@
     "agents": "Employees",
     "providers": "Providers",
     "models": "Model Management",
-    "channels": "Channels",
+    "channels": "External Devices",
     "sessions": "Sessions",
     "cronJobs": "Cron Jobs",
     "terminal": "Terminal AI+",

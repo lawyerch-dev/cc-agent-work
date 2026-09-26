@@ -203,7 +203,7 @@
     "agents": "员工",
     "providers": "Providers",
     "models": "模型",
-    "channels": "通道",
+    "channels": "外接设备",
     "sessions": "会话",
     "cronJobs": "定时任务",
     "terminal": "终端 AI+",
