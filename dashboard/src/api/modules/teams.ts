@@ -25,6 +25,7 @@ export interface TeamRecord {
   kind: "team";
   member_ids: string[];
   members: TeamMemberSummary[];
+  template_id?: string | null;
 }
 
 export interface TeamWriteBody {
@@ -43,9 +44,27 @@ export interface TeamTemplateFile {
   content: string;
 }
 
+export interface TeamTemplateRole {
+  name: string;
+  description: string;
+}
+
+export interface TeamTemplateSummary {
+  id: string;
+  label: string;
+  description: string;
+  icon: string | null;
+  color: string | null;
+  suggested_roles: TeamTemplateRole[];
+}
+
 export const teamsApi = {
   list: () => request<TeamRecord[]>("/teams"),
   templateFiles: () => request<TeamTemplateFile[]>("/teams/template"),
+  listTemplates: () => request<TeamTemplateSummary[]>("/team-templates"),
+  createFromTemplate: (templateId: string) =>
+    request<TeamRecord>(`/teams/from-template/${templateId}`, { method: "POST" }),
+  seedDefaults: () => request<TeamRecord[]>("/teams/seed-defaults", { method: "POST" }),
   get: (teamId: string) => request<TeamRecord>(`/teams/${teamId}`),
   create: (body: TeamWriteBody & { name: string; member_ids: string[] }) =>
     request<TeamRecord>("/teams", {

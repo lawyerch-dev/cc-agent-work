@@ -63,6 +63,8 @@ export interface OctopAgent {
   kind?: "expert" | "team" | string;
   /** Member agent ids when ``kind === "team"``. */
   member_ids?: string[];
+  /** Department template id when this agent is a team created from a template. */
+  template_id?: string | null;
   welcome_message?: string | null;
 }
 
