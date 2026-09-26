@@ -13,9 +13,11 @@ const options: { key: ThemePreference; Icon: typeof Monitor }[] = [
 
 interface ThemeSwitcherProps {
   compact?: boolean;
+  /** Stretch across the parent width; each option takes equal space. */
+  block?: boolean;
 }
 
-export default function ThemeSwitcher({ compact }: ThemeSwitcherProps) {
+export default function ThemeSwitcher({ compact, block }: ThemeSwitcherProps) {
   const { preference, setPreference } = useTheme();
   const { t } = useTranslation();
 
@@ -25,7 +27,7 @@ export default function ThemeSwitcher({ compact }: ThemeSwitcherProps) {
     dark: t("header.themeDark"),
   };
 
-  const btnSize = compact ? 26 : 32;
+  const btnSize = compact ? 26 : block ? 36 : 32;
   const iconSize = compact ? 14 : 16;
 
   return (
@@ -33,6 +35,8 @@ export default function ThemeSwitcher({ compact }: ThemeSwitcherProps) {
       style={{
         display: "inline-flex",
         alignItems: "center",
+        justifyContent: block ? "stretch" : undefined,
+        width: block ? "100%" : undefined,
         gap: 2,
         padding: compact ? 2 : 3,
         borderRadius: "var(--fn-radius-full, 999px)",
@@ -49,7 +53,8 @@ export default function ThemeSwitcher({ compact }: ThemeSwitcherProps) {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                width: btnSize,
+                flex: block ? 1 : undefined,
+                width: block ? undefined : btnSize,
                 height: btnSize,
                 border: "none",
                 borderRadius: "var(--fn-radius-full, 999px)",

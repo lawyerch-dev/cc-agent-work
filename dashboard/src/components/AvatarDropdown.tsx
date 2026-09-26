@@ -94,7 +94,7 @@ export default function AvatarDropdown({
   const { layoutMode, setLayoutMode } = useLayoutMode();
   const [menuOpen, setMenuOpen] = useState(false);
   const [settingsTab, setSettingsTab] = useState<"account" | "preferences">(
-    "account",
+    "preferences",
   );
   const [saving, setSaving] = useState(false);
   const [ssoProviders, setSsoProviders] = useState<
@@ -119,7 +119,7 @@ export default function AvatarDropdown({
 
   const openPanel = useCallback(() => {
     onBeforeOpenSettings?.();
-    setSettingsTab("account");
+    setSettingsTab("preferences");
     profileForm.setFieldsValue({ display_name: user?.display_name || "" });
     pwForm.resetFields();
     setMenuOpen(true);
@@ -129,7 +129,7 @@ export default function AvatarDropdown({
     (next: boolean) => {
       if (next) {
         onBeforeOpenSettings?.();
-        setSettingsTab("account");
+        setSettingsTab("preferences");
         profileForm.setFieldsValue({ display_name: user?.display_name || "" });
         pwForm.resetFields();
       }
@@ -645,7 +645,7 @@ export default function AvatarDropdown({
           </h3>
           <p className={styles.settingsSectionDesc}>{t("account.themeHint")}</p>
         </div>
-        <ThemeSwitcher />
+        <ThemeSwitcher block />
       </section>
 
       <Divider className={styles.settingsDivider} />
@@ -719,20 +719,20 @@ export default function AvatarDropdown({
           {
             label: (
               <span className={styles.panelTabLabel}>
-                <UserRound size={14} strokeWidth={1.8} />
-                {t("account.tabAccount")}
-              </span>
-            ),
-            value: "account",
-          },
-          {
-            label: (
-              <span className={styles.panelTabLabel}>
                 <Palette size={14} strokeWidth={1.8} />
                 {t("account.tabPreferences")}
               </span>
             ),
             value: "preferences",
+          },
+          {
+            label: (
+              <span className={styles.panelTabLabel}>
+                <UserRound size={14} strokeWidth={1.8} />
+                {t("account.tabAccount")}
+              </span>
+            ),
+            value: "account",
           },
         ]}
         onChange={(val) => setSettingsTab(val as "account" | "preferences")}

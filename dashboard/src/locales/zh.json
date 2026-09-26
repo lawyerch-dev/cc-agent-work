@@ -3579,8 +3579,8 @@
   "account": {
     "myAccount": "我的账户",
     "settings": "账号",
-    "tabAccount": "设置",
-    "tabPreferences": "偏好",
+    "tabAccount": "个人",
+    "tabPreferences": "系统",
     "appearance": "外观",
     "themeHint": "选择浅色、深色，或跟随系统。",
     "palette": "配色",
