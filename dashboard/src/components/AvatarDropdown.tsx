@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect, type ReactNode } from "react";
 import {
   Avatar,
-  Modal,
   Drawer,
   Form,
   Input,
@@ -18,7 +17,6 @@ import {
   LogOut,
   ChevronDown,
   ChevronUp,
-  Settings,
   Palette,
   CircleHelp,
   Github,
@@ -95,7 +93,6 @@ export default function AvatarDropdown({
   const isMobile = useIsMobile();
   const { layoutMode, setLayoutMode } = useLayoutMode();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsTab, setSettingsTab] = useState<"account" | "preferences">(
     "account",
   );
@@ -119,6 +116,27 @@ export default function AvatarDropdown({
     await applyGuestLocale();
     navigate("/login", { replace: true });
   }, [navigate]);
+
+  const openPanel = useCallback(() => {
+    onBeforeOpenSettings?.();
+    setSettingsTab("account");
+    profileForm.setFieldsValue({ display_name: user?.display_name || "" });
+    pwForm.resetFields();
+    setMenuOpen(true);
+  }, [onBeforeOpenSettings, user, profileForm, pwForm]);
+
+  const handleOpenChange = useCallback(
+    (next: boolean) => {
+      if (next) {
+        onBeforeOpenSettings?.();
+        setSettingsTab("account");
+        profileForm.setFieldsValue({ display_name: user?.display_name || "" });
+        pwForm.resetFields();
+      }
+      setMenuOpen(next);
+    },
+    [onBeforeOpenSettings, user, profileForm, pwForm],
+  );
 
   const handleSaveProfile = async (values: { display_name: string }) => {
     setSaving(true);
@@ -257,24 +275,8 @@ export default function AvatarDropdown({
     .charAt(0)
     .toUpperCase();
 
-  /** Defer panel open so the account Popover / mobile sidebar can unmount first. */
-  const deferOpen = (open: () => void) => {
-    window.setTimeout(open, 0);
-  };
-
-  const openSettings = (tab: "account" | "preferences" = "account") => {
-    setMenuOpen(false);
-    onBeforeOpenSettings?.();
-    setSettingsTab(tab);
-    profileForm.setFieldsValue({ display_name: user?.display_name || "" });
-    pwForm.resetFields();
-    deferOpen(() => setSettingsOpen(true));
-  };
-
-  const closeSettings = () => setSettingsOpen(false);
-
   useEffect(() => {
-    if (!settingsOpen) return;
+    if (!menuOpen) return;
     void authApi
       .me()
       .then((next) => onUserChange?.(next))
@@ -285,7 +287,7 @@ export default function AvatarDropdown({
         setSsoProviders(status.providers.filter((item) => item.enabled)),
       )
       .catch(() => undefined);
-  }, [onUserChange, settingsOpen]);
+  }, [onUserChange, menuOpen]);
 
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
@@ -326,86 +328,62 @@ export default function AvatarDropdown({
     </Avatar>
   );
 
-  const menuContent = (
-    <div className={styles.menu}>
-      <div className={styles.menuHeader}>
-        <div className={styles.menuHeaderTop}>
-          <span className={styles.menuDisplayName}>{displayName}</span>
-          <Tag
-            color={role === "admin" ? "blue" : "default"}
-            className={styles.roleTag}
-          >
-            {roleLabel}
-          </Tag>
-        </div>
-        {user?.username && (
-          <span className={styles.menuHandle}>@{user.username}</span>
-        )}
+  const panelHeader = (
+    <div className={styles.menuHeader}>
+      <div className={styles.menuHeaderTop}>
+        <span className={styles.menuDisplayName}>{displayName}</span>
+        <Tag
+          color={role === "admin" ? "blue" : "default"}
+          className={styles.roleTag}
+        >
+          {roleLabel}
+        </Tag>
       </div>
+      {user?.username && (
+        <span className={styles.menuHandle}>@{user.username}</span>
+      )}
+    </div>
+  );
 
-      <Divider className={styles.menuDivider} />
-
-      <div className={styles.menuItemRow}>
-        <div className={styles.menuItemLabel}>
-          <Palette size={16} strokeWidth={1.8} />
-          <span>{t("account.appearance")}</span>
-        </div>
-        <ThemeSwitcher compact />
-      </div>
-
+  const panelFooter = (
+    <div className={styles.panelFooter}>
       <a
-        className={styles.menuItem}
+        className={styles.panelLink}
         href={HELP_FEEDBACK_URL}
         target="_blank"
         rel="noopener noreferrer"
-        onClick={() => setMenuOpen(false)}
       >
-        <CircleHelp size={16} strokeWidth={1.8} />
+        <CircleHelp size={14} strokeWidth={1.8} />
         <span>{t("account.helpFeedback")}</span>
       </a>
-
       <a
-        className={styles.menuItem}
+        className={styles.panelLink}
         href={GITHUB_URL}
         target="_blank"
         rel="noopener noreferrer"
-        onClick={() => setMenuOpen(false)}
       >
-        <Github size={16} strokeWidth={1.8} />
+        <Github size={14} strokeWidth={1.8} />
         <span>{t("account.projectUrl")}</span>
       </a>
-
-      <button
-        type="button"
-        className={styles.menuItem}
-        onClick={() => openSettings("account")}
-      >
-        <Settings size={16} strokeWidth={1.8} />
-        <span>{t("account.settings")}</span>
-      </button>
-
       {userCan(user, "update") && (
         <button
           type="button"
-          className={styles.menuItem}
+          className={styles.panelLink}
           onClick={() => {
             setMenuOpen(false);
             navigate("/admin/advanced?tab=updates");
           }}
         >
-          <RefreshCw size={16} strokeWidth={1.8} />
+          <RefreshCw size={14} strokeWidth={1.8} />
           <span>{t("account.checkUpdates")}</span>
         </button>
       )}
-
-      <Divider className={styles.menuDivider} />
-
       <button
         type="button"
-        className={`${styles.menuItem} ${styles.menuItemDanger}`}
+        className={`${styles.panelLink} ${styles.menuItemDanger}`}
         onClick={() => void handleLogout()}
       >
-        <LogOut size={16} strokeWidth={1.8} />
+        <LogOut size={14} strokeWidth={1.8} />
         <span>{t("auth.logout")}</span>
       </button>
     </div>
@@ -416,6 +394,7 @@ export default function AvatarDropdown({
       <button
         type="button"
         className={styles.triggerExpanded}
+        onClick={isMobile ? openPanel : undefined}
         onMouseEnter={(e) => {
           e.currentTarget.style.background = "var(--fn-sidebar-item-hover)";
         }}
@@ -445,47 +424,26 @@ export default function AvatarDropdown({
         placement="right"
         mouseEnterDelay={0.3}
       >
-        <span role="button" tabIndex={0} className={styles.triggerCompact}>
+        <span
+          role="button"
+          tabIndex={0}
+          className={styles.triggerCompact}
+          onClick={isMobile ? openPanel : undefined}
+          onKeyDown={(e) => {
+            if (!isMobile) return;
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              openPanel();
+            }
+          }}
+        >
           {avatar}
         </span>
       </Tooltip>
     );
 
-  const identityBlock = (
-    <div className={styles.settingsIdentity}>
-      <Avatar
-        size={44}
-        style={{
-          background: "var(--fn-color-brand)",
-          fontSize: 18,
-          flexShrink: 0,
-        }}
-      >
-        {initials}
-      </Avatar>
-      <div className={styles.settingsIdentityText}>
-        <div className={styles.settingsIdentityName}>
-          <span>{displayName}</span>
-          <Tag
-            color={role === "admin" ? "blue" : "default"}
-            className={styles.roleTag}
-          >
-            {roleLabel}
-          </Tag>
-        </div>
-        {user?.username && (
-          <span className={styles.settingsIdentityHandle}>
-            @{user.username}
-          </span>
-        )}
-      </div>
-    </div>
-  );
-
   const accountTab = (
     <div className={styles.settingsBody}>
-      {identityBlock}
-
       <section className={styles.settingsSection}>
         <div className={styles.settingsSectionHead}>
           <h3 className={styles.settingsSectionTitle}>
@@ -750,95 +708,77 @@ export default function AvatarDropdown({
     </div>
   );
 
-  const settingsBody = (
-    <div className={styles.settingsLayout}>
-      <nav className={styles.settingsNav} aria-label={t("account.settings")}>
-        <button
-          type="button"
-          className={`${styles.settingsNavItem} ${
-            settingsTab === "account" ? styles.settingsNavItemActive : ""
-          }`}
-          onClick={() => setSettingsTab("account")}
-        >
-          <UserRound size={15} strokeWidth={1.8} />
-          <span>{t("account.tabAccount")}</span>
-        </button>
-        <button
-          type="button"
-          className={`${styles.settingsNavItem} ${
-            settingsTab === "preferences" ? styles.settingsNavItemActive : ""
-          }`}
-          onClick={() => setSettingsTab("preferences")}
-        >
-          <Palette size={15} strokeWidth={1.8} />
-          <span>{t("account.tabPreferences")}</span>
-        </button>
-      </nav>
-      <div className={styles.settingsPane}>
-        <div className={styles.settingsPaneMobileTabs}>
-          <Segmented
-            block
-            value={settingsTab}
-            options={[
-              { label: t("account.tabAccount"), value: "account" },
-              { label: t("account.tabPreferences"), value: "preferences" },
-            ]}
-            onChange={(val) => setSettingsTab(val as "account" | "preferences")}
-          />
-        </div>
+  const panelContent = (
+    <div className={styles.panel}>
+      {panelHeader}
+      <Segmented
+        block
+        className={styles.panelTabs}
+        value={settingsTab}
+        options={[
+          {
+            label: (
+              <span className={styles.panelTabLabel}>
+                <UserRound size={14} strokeWidth={1.8} />
+                {t("account.tabAccount")}
+              </span>
+            ),
+            value: "account",
+          },
+          {
+            label: (
+              <span className={styles.panelTabLabel}>
+                <Palette size={14} strokeWidth={1.8} />
+                {t("account.tabPreferences")}
+              </span>
+            ),
+            value: "preferences",
+          },
+        ]}
+        onChange={(val) => setSettingsTab(val as "account" | "preferences")}
+      />
+      <div className={styles.panelScroll}>
         {settingsTab === "account" ? accountTab : preferencesTab}
       </div>
+      <Divider className={styles.menuDivider} />
+      {panelFooter}
     </div>
   );
 
-  return (
+  return isMobile ? (
     <>
-      <Popover
-        content={menuContent}
-        trigger="click"
+      {triggerButton}
+      <Drawer
+        placement="bottom"
+        height="min(92dvh, 100%)"
         open={menuOpen}
-        onOpenChange={setMenuOpen}
-        placement="topLeft"
-        arrow={false}
-        overlayClassName={styles.menuPopover}
+        onClose={() => setMenuOpen(false)}
         destroyOnHidden
-        getPopupContainer={() => document.body}
+        className={styles.settingsDrawer}
+        title={t("account.settings")}
+        styles={{
+          body: {
+            paddingTop: 8,
+            paddingBottom: "calc(16px + env(safe-area-inset-bottom, 0px))",
+          },
+        }}
       >
-        {triggerButton}
-      </Popover>
-
-      {isMobile ? (
-        <Drawer
-          title={t("account.settings")}
-          open={settingsOpen}
-          onClose={closeSettings}
-          placement="bottom"
-          height="min(92dvh, 100%)"
-          destroyOnHidden
-          className={styles.settingsDrawer}
-          styles={{
-            body: {
-              paddingTop: 8,
-              paddingBottom: "calc(16px + env(safe-area-inset-bottom, 0px))",
-            },
-          }}
-        >
-          {settingsBody}
-        </Drawer>
-      ) : (
-        <Modal
-          title={t("account.settings")}
-          open={settingsOpen}
-          onCancel={closeSettings}
-          footer={null}
-          destroyOnHidden
-          centered
-          width={640}
-          className={styles.settingsModal}
-        >
-          {settingsBody}
-        </Modal>
-      )}
+        {panelContent}
+      </Drawer>
     </>
+  ) : (
+    <Popover
+      content={panelContent}
+      trigger="click"
+      open={menuOpen}
+      onOpenChange={handleOpenChange}
+      placement="topLeft"
+      arrow={false}
+      overlayClassName={styles.menuPopover}
+      destroyOnHidden
+      getPopupContainer={() => document.body}
+    >
+      {triggerButton}
+    </Popover>
   );
 }

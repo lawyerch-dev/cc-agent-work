@@ -3581,8 +3581,8 @@
   },
   "account": {
     "myAccount": "My Account",
-    "settings": "Settings",
-    "tabAccount": "Account",
+    "settings": "Account",
+    "tabAccount": "Settings",
     "tabPreferences": "Preferences",
     "appearance": "Appearance",
     "themeHint": "Choose light, dark, or follow the system.",
