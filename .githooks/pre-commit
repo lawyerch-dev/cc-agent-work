@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Pre-commit gate: make precommit (format BE+FE + lint + typecheck + testmon-scoped
-# tests) + dashboard build. The full suite still runs in CI (`make all`); this is a
-# fast, change-aware local gate so commits don't wait on the whole test matrix.
+# Pre-commit gate (fast, change-aware): make precommit-fast (format BE+FE + lint
+# + testmon-scoped tests) and a dashboard build ONLY when dashboard/ changed.
+# Full mypy is intentionally excluded here (run `make precommit` / `make all`
+# before a PR); CI enforces the full matrix.
 # Enable once per clone:  make install-hooks
 # Bypass (emergency only): SKIP_PRECOMMIT=1 git commit ...
 # Or: git commit --no-verify
@@ -22,8 +23,8 @@ while IFS= read -r line; do
   [[ -n "$line" ]] && STAGED_FILES+=("$line")
 done < <(git diff --cached --name-only --diff-filter=ACMR || true)
 
-echo "[pre-commit] make precommit  (format-all + lint + typecheck + testmon-scoped test)"
-make precommit
+echo "[pre-commit] make precommit-fast  (format-all + lint + testmon-scoped test)"
+make precommit-fast
 
 # If format rewrote files that were already staged, refresh the index so the
 # commit includes the formatted content (worktree vs index drift).
@@ -39,10 +40,22 @@ if ((${#STAGED_FILES[@]} > 0)); then
   fi
 fi
 
-echo "[pre-commit] dashboard npm run build"
-(
-  cd "$ROOT/dashboard"
-  npm run build
-)
+# Rebuild the served SPA only when dashboard sources changed in this commit.
+needs_build=0
+for f in "${STAGED_FILES[@]}"; do
+  if [[ "$f" == dashboard/* ]]; then
+    needs_build=1
+    break
+  fi
+done
+if ((needs_build)); then
+  echo "[pre-commit] dashboard changed — npm run build"
+  (
+    cd "$ROOT/dashboard"
+    npm run build
+  )
+else
+  echo "[pre-commit] no dashboard changes — skipping SPA build"
+fi
 
 echo "[pre-commit] all checks passed"

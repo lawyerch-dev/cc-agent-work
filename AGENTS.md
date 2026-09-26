@@ -30,7 +30,7 @@ Navigation guide for AI coding agents working in this repository.
 
 - Turn tasks into verifiable goals (what to test, which command proves success).
 - For multi-step work, sketch a short plan: `step → verify: …`
-- Before saying "done", provide verification evidence; the default ship bar is **`make all` green** (see [§6 Run commands](#6-run-commands), [§10 Change workflow](#10-change-workflow)).
+- Work in a **fast loop**: after each change run only the minimal relevant checks (see [§6 Fast dev loop](#6-run-commands)); reserve **`make all`** for finishing a unit of work / opening a PR. Before saying "done", provide verification evidence; the ship bar is **`make all` green**.
 
 ## 2. What this is
 
@@ -205,7 +205,9 @@ make install-hooks                      # once per clone: enable .githooks pre-c
 make start                              # one-click: stop leftovers, then desktop shell (default)
 make start-dev                          # one-click: stop leftovers, then Vite + backend (browser)
 make stop                               # stop existing desktop/dev instances
-make all                                # format-all + lint + typecheck + test (ship bar)
+make all                                # format-all + lint + typecheck + test (ship bar; PR/release only)
+make precommit-fast                     # commit gate: format-all + lint + testmon-affected tests (no mypy)
+make precommit                          # full local gate incl. mypy (before PR)
 make format-all                         # backend Ruff + dashboard Prettier write
 make lint                               # ruff check + format check
 make typecheck                          # mypy --strict src/octop
@@ -235,7 +237,23 @@ the built SPA from the backend URL — run `make build-frontend` first or the
 window hits 404 on `/` and `/sw.js` (`make start` does this automatically when
 the bundle is missing). Desktop also needs Go 1.25+ and `wails3` on `PATH`.
 
-**Git hooks (required for local commits):** after cloning, run **`make install-hooks`** once. That sets `core.hooksPath=.githooks` so every `git commit` runs **`make all`** (which first runs **`format-all`**: backend Ruff + dashboard Prettier write, then lint / typecheck / test) and dashboard **`npm run build`**. Formatted files that were already staged are re-added so the commit includes the formatted content. Bypass only in emergencies: `SKIP_PRECOMMIT=1 git commit …` or `git commit --no-verify`. Do **not** skip hooks to land red tests — fix the suite first (CI runs on Linux **and** Windows).
+**Fast dev loop (default):** after each change run only the **minimal relevant
+checks** — do **not** run `make all` on every edit.
+
+- Backend: `uv run pytest <targeted test file(s)> -q`, then
+  `uv run ruff format <files>` + `uv run ruff check src tests`.
+- Frontend: `cd dashboard && npx tsc -b` and `npx vitest run <related test file(s)>`;
+  `npx prettier --write <files>` when formatting.
+- API routes: glance at `/api/docs` only when routes/schemas changed.
+- i18n JSON: `uv run pytest tests/unit/i18n -q`.
+
+Reserve **`make all`** (and `make precommit`, which includes full mypy) for
+finishing a unit of work / opening a PR — not for the inner loop.
+
+**Commit timing:** do **not** commit automatically; commit only when the user
+explicitly asks. One logical change per commit.
+
+**Git hooks (required for local commits):** after cloning, run **`make install-hooks`** once. That sets `core.hooksPath=.githooks` so every `git commit` runs **`make precommit-fast`** (backend Ruff + dashboard Prettier write, lint, then only testmon-affected tests) and dashboard **`npm run build` only when `dashboard/` files are staged**. Full mypy is intentionally excluded from the hook (it runs in CI and via `make precommit` / `make all`). Formatted files that were already staged are re-added so the commit includes the formatted content. Bypass for small/doc-only commits when the user is fine with it: `SKIP_PRECOMMIT=1 git commit …` or `git commit --no-verify`. Do **not** skip hooks to land red tests — fix the suite first (CI runs on Linux **and** Windows).
 
 ## 7. Key patterns
 
@@ -405,7 +423,7 @@ Boundary rules are in [§5](#5-module-boundaries). Additionally:
 | Server timezone (config.json) | `default_timezone` in `config.py`; `GET /api/settings/timezone`; `dashboard/src/hooks/useServerTimezone.ts`; `dashboard/src/utils/formatMessageTime.ts` |
 | Test layout & shared helpers | `tests/support/` (`fakes`, `auth`, `http`, `scenarios`, `app`), `tests/integration/conftest.py`, `tests/unit/{db,cron,gateway,agents,api,cli}/` |
 | How to start locally (desktop / browser) | `make start` / `make start-dev` / `make stop` → `scripts/start.sh` |
-| Pre-commit hooks | `make install-hooks` → `.githooks/pre-commit` (`make all` incl. `format-all` + dashboard build) |
+| Pre-commit hooks | `make install-hooks` → `.githooks/pre-commit` (`make precommit-fast`; dashboard build only when `dashboard/` changed) |
 | What is a Thread? | `infra/gateway/threads.py`, `infra/db/repos/threads.py` |
 | Workspace backend resolution | `infra/backend/resolver.py`, `infra/backend/adapter.py` |
 | Connectors & OAuth | `infra/connectors/`, `api/routers/connectors.py` |
@@ -425,9 +443,9 @@ Boundary rules are in [§5](#5-module-boundaries). Additionally:
 ## 10. Change workflow
 
 1. **Clarify scope** — read relevant code/docs; confirm assumptions and ambiguities with the user (see [§1](#1-collaboration-principles)).
-2. **Hooks** — if this clone has not run `make install-hooks` yet, do it before committing (see [§6](#6-run-commands)). Pre-commit must stay green (`make all` + dashboard build).
+2. **Hooks** — if this clone has not run `make install-hooks` yet, do it before committing (see [§6](#6-run-commands)). Pre-commit (`make precommit-fast`) must stay green; run `make all` before opening a PR.
 3. **Minimal implementation** — change only task-related files; dashboard source is in `dashboard/`, build output in `src/octop/dashboard/` (run `make build-frontend` after UI changes).
-4. **Verify** — backend/ship bar: `make all` (`format-all` + `lint` + `typecheck` + `test`). After `dashboard/` changes, also run `cd dashboard && npx tsc -b` (and `npm run lint` when appropriate). After API route changes, glance at `/api/docs` for readable summaries and schemas. After i18n JSON changes, run `uv run pytest tests/unit/i18n -q`. Treat Windows CI as part of the bar: follow [§7 Cross-platform tests](#7-key-patterns).
+4. **Verify** — inner loop: run the minimal relevant checks ([§6 Fast dev loop](#6-run-commands)); reserve `make all` (`format-all` + `lint` + `typecheck` + `test`) for finishing a unit of work / opening a PR. After `dashboard/` changes, also run `cd dashboard && npx tsc -b` (and `npm run lint` when appropriate). After API route changes, glance at `/api/docs` for readable summaries and schemas. After i18n JSON changes, run `uv run pytest tests/unit/i18n -q`. Treat Windows CI as part of the bar: follow [§7 Cross-platform tests](#7-key-patterns).
 5. **Wrap up** — remove orphan symbols introduced in this change; do not commit or push unless asked.
 
 ### Branching & release

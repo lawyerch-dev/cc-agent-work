@@ -255,6 +255,12 @@ test-live:
 .PHONY: precommit
 precommit: format-all lint typecheck test-affected
 
+# Commit gate used by the pre-commit hook: same as `precommit` but WITHOUT the
+# full mypy pass (mypy alone dominates commit latency). Typecheck still runs in
+# CI and via `make all` / `make precommit` before a PR.
+.PHONY: precommit-fast
+precommit-fast: format-all lint test-affected
+
 # NOTE: do NOT pass `-m` here — pytest-testmon deactivates its affected-test
 # selection whenever a marker expression is present, which would fall back to
 # the full suite. Live tests under tests/live/ auto-skip when credentials are
