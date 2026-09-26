@@ -227,8 +227,8 @@ export default function PwaInstallPrompt({
       aria-label="安装应用"
     >
       <Download
-        size={chatFloat ? 20 : compact ? 15 : 16}
-        strokeWidth={chatFloat ? 2.1 : 1.8}
+        size={chatFloat ? 16 : compact ? 15 : 16}
+        strokeWidth={chatFloat ? 1.9 : 1.8}
         className={styles.installIcon}
       />
       {!compact && !chatFloat && <span className={styles.label}>安装</span>}

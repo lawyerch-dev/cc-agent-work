@@ -82,6 +82,7 @@ import {
   dockTabIdForToolCall,
 } from "./ChatToolDockContext";
 import ChatSidebarPanel from "./components/ChatSidebarPanel";
+import ChatFloatBar from "./components/ChatFloatBar";
 import ChatTitleBar from "./components/ChatTitleBar";
 import TeamChatBadge from "./components/TeamChatBadge";
 import ChatComposerChrome from "./components/ChatComposerChrome";
@@ -1350,7 +1351,7 @@ function ChatPageInner() {
               !dockOpen &&
               !agentProfileOpen &&
               !trajectoryDrawerOpen && (
-                <div className={styles.chatFloatActions}>
+                <ChatFloatBar>
                   {/* PWA install first when available — same column as browser / experts. */}
                   <PwaInstallPrompt appearance="chatFloat" />
                   {resolvedAgentId && !sharedExpertViewer && (
@@ -1367,7 +1368,7 @@ function ChatPageInner() {
                             onClick={() => setAgentProfileOpen(true)}
                             aria-label={profileOpenLabel}
                           >
-                            <ProfileIcon size={20} strokeWidth={2.1} />
+                            <ProfileIcon size={16} strokeWidth={1.9} />
                           </button>
                         </span>
                       </Tooltip>
@@ -1388,7 +1389,7 @@ function ChatPageInner() {
                             onClick={toggleWorkspacePanel}
                             aria-label={t("chat.openWorkspace", "工作区")}
                           >
-                            <FolderOpen size={20} strokeWidth={2.1} />
+                            <FolderOpen size={16} strokeWidth={1.9} />
                           </button>
                         </span>
                       </Tooltip>
@@ -1413,7 +1414,7 @@ function ChatPageInner() {
                             defaultValue: "已修改文件（{{count}}）",
                           })}
                         >
-                          <FilePen size={20} strokeWidth={2.1} />
+                          <FilePen size={16} strokeWidth={1.9} />
                         </button>
                         {panelFilePaths.length > 1 && (
                           <span className={styles.chatFloatBadge}>
@@ -1438,7 +1439,7 @@ function ChatPageInner() {
                           onClick={toggleTerminalPanel}
                           aria-label={t("chat.openTerminal", "打开终端")}
                         >
-                          <Terminal size={20} strokeWidth={2.1} />
+                          <Terminal size={16} strokeWidth={1.9} />
                         </button>
                       </span>
                     </Tooltip>
@@ -1466,7 +1467,7 @@ function ChatPageInner() {
                           onClick={() => setTrajectoryDrawerOpen(true)}
                           aria-label={t("chat.openTrajectory", "运行轨迹")}
                         >
-                          <Activity size={20} strokeWidth={2.1} />
+                          <Activity size={16} strokeWidth={1.9} />
                         </button>
                       </span>
                     </Tooltip>
@@ -1505,7 +1506,7 @@ function ChatPageInner() {
                         onClick={() => void handleToggleBrowserPanel()}
                         aria-label={t("chat.openBrowser")}
                       >
-                        <Globe size={20} strokeWidth={2.1} />
+                        <Globe size={16} strokeWidth={1.9} />
                         {browserSessionId && (
                           <span
                             className={`${styles.browserStatusDot} ${
@@ -1516,7 +1517,7 @@ function ChatPageInner() {
                       </button>
                     </span>
                   </Tooltip>
-                </div>
+                </ChatFloatBar>
               )}
 
             <ChatComposerChrome sessionUsageLabel={sessionUsageLabel} />

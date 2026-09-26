@@ -1302,6 +1302,8 @@
     "resizeSidebar": "Resize sidebar",
     "expandHistorySidebar": "Show conversation history",
     "collapseHistorySidebar": "Hide conversation history",
+    "expandFloatBar": "Expand controls",
+    "collapseFloatBar": "Collapse controls",
     "teamBadge": "Team",
     "teamHostHover": "[{{name}}] Host",
     "agentProfile": {

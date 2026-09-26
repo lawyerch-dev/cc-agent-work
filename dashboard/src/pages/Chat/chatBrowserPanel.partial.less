@@ -37,41 +37,7 @@
   }
 }
 
-.chatFloatActions {
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 5;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  /* Extra padding is the approach zone: fade in before the pointer hits icons. */
-  padding: 40px 14px 40px 40px;
-  box-sizing: border-box;
-  opacity: 0;
-  transition: opacity var(--fn-transition-fast, 0.15s ease);
-
-  &:hover,
-  &:focus-within {
-    opacity: 1;
-  }
-
-  @media (hover: none) {
-    opacity: 1;
-  }
-
-  @media (max-width: 767px) {
-    right: 10px;
-    top: auto;
-    bottom: 88px;
-    transform: none;
-    padding: 0;
-    opacity: 1;
-  }
-}
-
+/* Bar positioning lives in ChatFloatBar.module.less. */
 .chatFloatBtnWrap {
   position: relative;
   display: inline-flex;
@@ -85,17 +51,17 @@
 
 .chatFloatBadge {
   position: absolute;
-  top: -5px;
-  right: -5px;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
+  top: -4px;
+  right: -4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
   border-radius: 999px;
   background: var(--fn-color-brand);
   color: #fff;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
-  line-height: 18px;
+  line-height: 16px;
   text-align: center;
   pointer-events: none;
   box-shadow: 0 0 0 2px var(--fn-bg-elevated, #fff);
@@ -903,8 +869,8 @@
 
 .browserStatusDot {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 4px;
+  right: 4px;
   width: 9px;
   height: 9px;
   border-radius: 50%;

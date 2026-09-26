@@ -1302,6 +1302,8 @@
     "resizeSidebar": "调整侧栏宽度",
     "expandHistorySidebar": "展开对话历史",
     "collapseHistorySidebar": "收起对话历史",
+    "expandFloatBar": "展开控件栏",
+    "collapseFloatBar": "收起控件栏",
     "teamBadge": "团队",
     "teamHostHover": "[{{name}}] 主持人",
     "agentProfile": {
