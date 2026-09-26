@@ -1,21 +1,12 @@
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type CSSProperties,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Button,
   Drawer,
   Dropdown,
-  Empty,
   Form,
   Input,
-  List,
   Segmented,
   Spin,
-  Tag,
   Tooltip,
   Typography,
 } from "antd";
@@ -29,8 +20,6 @@ import {
   LayoutGrid,
   List as ListIcon,
   MoreHorizontal,
-  PanelLeftClose,
-  PanelLeftOpen,
   Pencil,
   Plus,
   RefreshCw,
@@ -51,9 +40,7 @@ import { CardSkeleton } from "../../components/Skeleton";
 import { EmptyState, OctopEmptyMascot } from "../../components/EmptyState";
 import StreamSetupGuide from "../../components/StreamSetupGuide/StreamSetupGuide";
 import { useCardTableView } from "../../hooks/useCardTableView";
-import { useHorizontalResize } from "../../hooks/useHorizontalResize";
 import { useIsMobile } from "../../hooks/useIsMobile";
-import { useListPanelCollapsed } from "../../hooks/useListPanelCollapsed";
 import PageShell from "../../layouts/PageShell";
 import {
   apiErrorMessage,
@@ -112,17 +99,6 @@ function canMutatePackage(
   );
 }
 
-function formatPackageCreator(
-  item: Pick<
-    SkillPackage,
-    "creator_display_name" | "creator_username" | "created_by"
-  >,
-): string {
-  const displayName = item.creator_display_name?.trim() || "";
-  const username = item.creator_username?.trim() || "";
-  return displayName || username || item.created_by;
-}
-
 function PackageIconPicker({
   value,
   onChange,
@@ -170,7 +146,6 @@ export default function SkillPackagesPage() {
     (SkillPackageSkill & { package_name: string })[]
   >([]);
   const [libraryLoading, setLibraryLoading] = useState(false);
-  const [mobilePane, setMobilePane] = useState<"list" | "detail">("list");
   const [user, setUser] = useState<OctopUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -190,19 +165,6 @@ export default function SkillPackagesPage() {
   const iconUrl = Form.useWatch("icon_url", packageForm);
   const detailRequestGate = useRef(createDetailRequestGate());
   const initialLoadDone = useRef(false);
-
-  const {
-    size: sidebarWidth,
-    isResizing,
-    onResizeStart,
-  } = useHorizontalResize({
-    min: 200,
-    max: 480,
-    defaultSize: 280,
-    storageKey: "octop:skill-packages:sidebar-width",
-  });
-  const { collapsed: listPanelCollapsed, toggle: toggleListPanel } =
-    useListPanelCollapsed("octop:skill-packages:list-collapsed");
 
   const loadPackages = useCallback(
     async (opts?: { silent?: boolean }) => {
@@ -296,10 +258,6 @@ export default function SkillPackagesPage() {
     void loadAllSkills(packages);
   }, [packages, loadAllSkills]);
 
-  useEffect(() => {
-    if (!isMobile) setMobilePane("list");
-  }, [isMobile]);
-
   const canMutate = Boolean(selected && canMutatePackage(selected, user));
 
   const enterPackage = (item: SkillPackage) => {
@@ -314,7 +272,6 @@ export default function SkillPackagesPage() {
     setSelected(null);
     setSelectedId(null);
     setDetailLoading(false);
-    if (isMobile) setMobilePane("list");
   };
 
   /** Resolve/create the default folder used for root-level skill actions. */
@@ -397,7 +354,6 @@ export default function SkillPackagesPage() {
       await loadPackages({ silent: true });
       setSelected(next);
       setSelectedId(next.id);
-      if (isMobile) setMobilePane("detail");
       message.success(
         t(editingPackageId ? "skillPackages.updated" : "skillPackages.created"),
       );
@@ -421,9 +377,7 @@ export default function SkillPackagesPage() {
       setPackages(rows);
       initialLoadDone.current = true;
       if (deletingSelected) {
-        if (isMobile) {
-          setMobilePane("list");
-        } else if (rows.length > 0) {
+        if (rows.length > 0) {
           await loadDetail(rows[0].id);
         }
       }
@@ -859,9 +813,6 @@ export default function SkillPackagesPage() {
     skillCards(skills)
   );
 
-  const showListPane = !isMobile || mobilePane === "list";
-  const showDetailPane = !isMobile || mobilePane === "detail";
-  const showListPanel = showListPane && (isMobile || !listPanelCollapsed);
   const showEmptyGuide = !loading && packages.length === 0;
 
   return (
@@ -913,173 +864,14 @@ export default function SkillPackagesPage() {
           />
         </div>
       ) : (
-        <div
-          className={`${styles.layout}${
-            isResizing ? ` ${styles.layoutResizing}` : ""
-          }${isMobile ? ` ${styles.layoutMobile}` : ""}`}
-          style={
-            {
-              "--skill-packages-sidebar-width": `${sidebarWidth}px`,
-            } as CSSProperties
-          }
-        >
-          {showListPanel ? (
-            <aside className={styles.packageList}>
-              <div className={styles.listPanelHeader}>
-                <span className={styles.listPanelTitle}>
-                  {t("skillPackages.title")}
-                </span>
-                {!isMobile ? (
-                  <Tooltip title={t("skillPackages.collapseListPanel")}>
-                    <button
-                      type="button"
-                      className={styles.listPanelToggle}
-                      onClick={toggleListPanel}
-                      aria-label={t("skillPackages.collapseListPanel")}
-                    >
-                      <PanelLeftClose size={15} strokeWidth={1.8} />
-                    </button>
-                  </Tooltip>
-                ) : null}
-              </div>
-              <div className={styles.packageListActions}>
-                <Button
-                  type="primary"
-                  icon={<Plus size={15} />}
-                  onClick={openCreatePackage}
-                >
-                  {t("skillPackages.createPackage")}
-                </Button>
-                <Tooltip title={t("skillPackages.fromSkillHub")}>
-                  <Button
-                    icon={<Store size={15} />}
-                    aria-label={t("skillPackages.fromSkillHub")}
-                    onClick={() => setSkillsetHubOpen(true)}
-                  />
-                </Tooltip>
-              </div>
-              {loading && packages.length === 0 ? (
-                <div className={styles.centered}>
-                  <Spin />
-                </div>
-              ) : (
-                <List
-                  className={styles.list}
-                  split={false}
-                  dataSource={packages}
-                  locale={{
-                    emptyText: (
-                      <Empty
-                        image={Empty.PRESENTED_IMAGE_SIMPLE}
-                        description={t("skillPackages.empty")}
-                      />
-                    ),
-                  }}
-                  renderItem={(item) => (
-                    <List.Item
-                      className={styles.listRow}
-                      onClick={() => enterPackage(item)}
-                    >
-                      <div
-                        className={`${styles.listItem} ${
-                          item.id === selectedId ? styles.active : ""
-                        }`}
-                      >
-                        <div className={styles.listName}>
-                          <span className={styles.listIcon}>
-                            <PackageIcon
-                              iconUrl={item.icon_url}
-                              iconName={item.icon_name}
-                              size={24}
-                              imageClassName={styles.listIconImage}
-                            />
-                          </span>
-                          <span className={styles.listNameText}>
-                            {item.name}
-                          </span>
-                          {canMutatePackage(item, user) ? (
-                            <Dropdown
-                              menu={{ items: packageMenuItems(item) }}
-                              trigger={["click"]}
-                              placement="bottomRight"
-                            >
-                              <button
-                                type="button"
-                                className={styles.listMoreBtn}
-                                aria-label={t("common.more")}
-                                onClick={(event) => event.stopPropagation()}
-                              >
-                                <MoreHorizontal size={15} />
-                              </button>
-                            </Dropdown>
-                          ) : null}
-                        </div>
-                        <div className={styles.listDescription}>
-                          {item.description || "—"}
-                        </div>
-                        <div className={styles.listMeta}>
-                          <span className={styles.listCreator}>
-                            {t("skillPackages.createdBy", {
-                              name: formatPackageCreator(item),
-                            })}
-                          </span>
-                          <Tag className={styles.listCountTag}>
-                            {t("skillPackages.skillCount", {
-                              count: item.skill_count,
-                            })}
-                          </Tag>
-                        </div>
-                      </div>
-                    </List.Item>
-                  )}
-                />
-              )}
-            </aside>
-          ) : null}
-
-          {!isMobile && !listPanelCollapsed ? (
-            <div data-split-divider="" className={styles.splitDivider}>
-              <div
-                className={styles.resizeHandle}
-                role="separator"
-                aria-orientation="vertical"
-                aria-label={t("skillPackages.resizeSidebar")}
-                onPointerDown={onResizeStart}
-              />
+        <div className={styles.libraryLayout}>
+          {detailLoading ? (
+            <div className={styles.detailLoadingOverlay}>
+              <Spin />
             </div>
           ) : null}
-
-          {showDetailPane ? (
-            <section
-              className={`${styles.detail}${
-                !isMobile && listPanelCollapsed
-                  ? ` ${styles.detailListCollapsed}`
-                  : ""
-              }`}
-            >
-              {!isMobile && listPanelCollapsed ? (
-                <Tooltip title={t("skillPackages.expandListPanel")}>
-                  <button
-                    type="button"
-                    className={styles.listPanelExpandBtn}
-                    onClick={toggleListPanel}
-                    aria-label={t("skillPackages.expandListPanel")}
-                  >
-                    <PanelLeftOpen size={16} strokeWidth={1.8} />
-                  </button>
-                </Tooltip>
-              ) : null}
-              {detailLoading ? (
-                <div className={styles.detailLoadingOverlay}>
-                  <Spin />
-                </div>
-              ) : null}
-              <div className={styles.detailBody}>
-                {libraryToolbar}
-                <div className={skillStyles.skillsListArea}>{libraryBody}</div>
-              </div>
-            </section>
-          ) : null}
+          {libraryToolbar}
+          <div className={skillStyles.skillsListArea}>{libraryBody}</div>
         </div>
       )}
 
@@ -1179,7 +971,6 @@ export default function SkillPackagesPage() {
           await loadPackages({ silent: true });
           setSelected(pkg);
           setSelectedId(pkg.id);
-          if (isMobile) setMobilePane("detail");
           setSkillsetHubOpen(false);
           message.success(t("skillPackages.created"));
         }}

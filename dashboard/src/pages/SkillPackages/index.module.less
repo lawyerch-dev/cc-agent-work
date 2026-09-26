@@ -616,6 +616,20 @@
 
 /* ── Library root: folder / file cards ─────────────────────────── */
 
+.libraryLayout {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  border: 1px solid var(--fn-border-secondary);
+  border-radius: var(--fn-radius-lg);
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: var(--fn-bg-container);
+  padding: 16px;
+}
+
 .sectionBlock {
   margin-bottom: 20px;
 }
@@ -674,6 +688,22 @@
   justify-content: center;
   border-radius: 12px;
   background: var(--fn-bg-secondary);
+  overflow: hidden;
+
+  img {
+    width: 44px;
+    height: 44px;
+    object-fit: cover;
+    border-radius: 12px;
+    display: block;
+  }
+
+  svg {
+    width: 22px;
+    height: 22px;
+    display: block;
+    flex-shrink: 0;
+  }
 }
 
 .folderMeta {
@@ -725,12 +755,15 @@
   flex: 1;
   color: var(--fn-text-secondary);
   font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .breadcrumbRoot {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  flex-shrink: 0;
   font-weight: 600;
   color: var(--fn-text-primary);
 }
