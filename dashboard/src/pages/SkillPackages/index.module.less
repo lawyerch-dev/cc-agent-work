@@ -613,3 +613,153 @@
 .layoutMobile :global(.ant-typography) {
   word-break: break-word;
 }
+
+/* ── Library root: folder / file cards ─────────────────────────── */
+
+.sectionBlock {
+  margin-bottom: 20px;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  color: var(--fn-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.sectionCount {
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--fn-bg-secondary);
+  color: var(--fn-text-tertiary);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.folderGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.folderCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--fn-border-secondary);
+  border-radius: var(--fn-radius-md);
+  background: var(--fn-bg-container);
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+
+  &:hover {
+    border-color: var(--fn-color-brand);
+    background: var(--fn-bg-hover);
+  }
+}
+
+.folderIcon {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: var(--fn-bg-secondary);
+}
+
+.folderMeta {
+  flex: 1;
+  min-width: 0;
+}
+
+.folderName {
+  color: var(--fn-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folderDesc {
+  margin-top: 4px;
+  color: var(--fn-text-tertiary);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folderMoreBtn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--fn-text-tertiary);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--fn-bg-hover);
+    color: var(--fn-text-primary);
+  }
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+  color: var(--fn-text-secondary);
+  font-size: 13px;
+}
+
+.breadcrumbRoot {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--fn-text-primary);
+}
+
+.breadcrumbLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--fn-color-brand);
+  cursor: pointer;
+  font-size: 13px;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+.breadcrumbSep {
+  color: var(--fn-text-tertiary);
+}
+
+.breadcrumbCurrent {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  color: var(--fn-text-primary);
+}
