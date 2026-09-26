@@ -58,7 +58,7 @@ describe("ExpertPickerPopover hide shared experts", () => {
     expect(screen.getByText("我的专家")).toBeInTheDocument();
 
     const hideButtons = screen.getAllByRole("button", {
-      name: /chat\.expertHide|Hide shared expert|隐藏共享专家/,
+      name: /chat\.expertHide|Hide shared employee|隐藏共享员工/,
     });
     expect(hideButtons.length).toBe(2);
     await user.click(hideButtons[0]);
@@ -68,14 +68,14 @@ describe("ExpertPickerPopover hide shared experts", () => {
 
     await user.click(
       screen.getByRole("button", {
-        name: /chat\.expertPickerHidden|Hidden experts|已隐藏专家/,
+        name: /chat\.expertPickerHidden|Hidden employees|已隐藏员工/,
       }),
     );
     expect(screen.getByText("共享专家甲")).toBeInTheDocument();
 
     await user.click(
       screen.getByRole("button", {
-        name: /chat\.expertUnhide|Show expert again|重新显示专家/,
+        name: /chat\.expertUnhide|Show employee again|重新显示员工/,
       }),
     );
     // Last hidden expert restored → auto-return to the visible list.
@@ -84,7 +84,7 @@ describe("ExpertPickerPopover hide shared experts", () => {
     expect(screen.getByText("我的专家")).toBeInTheDocument();
     expect(
       screen.queryByRole("button", {
-        name: /chat\.expertPickerHidden|Hidden experts|已隐藏专家/,
+        name: /chat\.expertPickerHidden|Hidden employees|已隐藏员工/,
       }),
     ).not.toBeInTheDocument();
   });

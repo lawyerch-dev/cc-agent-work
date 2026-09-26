@@ -27,7 +27,7 @@ describe("MemoryMaintenanceBanner", () => {
         blocking
       />,
     );
-    expect(screen.getByText(/此智能体的所有会话/)).toBeInTheDocument();
+    expect(screen.getByText(/此员工的所有会话/)).toBeInTheDocument();
     expect(screen.queryByText(/无法可靠预估剩余时间/)).not.toBeInTheDocument();
     act(() => {
       vi.advanceTimersByTime(61000);

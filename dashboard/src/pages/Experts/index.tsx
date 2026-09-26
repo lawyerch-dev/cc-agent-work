@@ -715,13 +715,6 @@ export default function ExpertsPage() {
         onChange={(k) => setActiveTab(k as TabKey)}
         items={[
           {
-            key: "my",
-            label: (
-              <TabLabel icon={GraduationCap}>{t("experts.myExperts")}</TabLabel>
-            ),
-            children: myExpertsContent,
-          },
-          {
             key: "teams",
             label: (
               <TabLabel icon={Users}>
@@ -732,6 +725,13 @@ export default function ExpertsPage() {
               </TabLabel>
             ),
             children: teamsContent,
+          },
+          {
+            key: "my",
+            label: (
+              <TabLabel icon={GraduationCap}>{t("experts.myExperts")}</TabLabel>
+            ),
+            children: myExpertsContent,
           },
           {
             key: "library",
