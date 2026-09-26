@@ -18,7 +18,6 @@ import {
   GraduationCap,
   Shield,
   PanelsTopLeft,
-  FolderKanban,
 } from "lucide-react";
 import type { OctopUser } from "../api/modules/auth";
 import { navAllowed, userCan } from "../utils/permissions";
@@ -50,7 +49,6 @@ export interface NavSection {
  */
 export const SIDEBAR_GROUPED_NAV_KEYS = [
   "personalization",
-  "assets",
   "channels",
   "connectors",
   "skill-packages",
@@ -117,16 +115,8 @@ export function buildNavSections(
     },
   ];
 
-  // Company assets hub: overview + shared resource libraries.
+  // Company assets: shared resource libraries.
   const assetItems: NavItem[] = [];
-  if (navAllowed(user, "assets")) {
-    assetItems.push({
-      key: "assets",
-      path: "/assets",
-      icon: <FolderKanban size={iconSize} strokeWidth={iconStroke} />,
-      labelKey: "nav.assets",
-    });
-  }
   if (navAllowed(user, "channels")) {
     assetItems.push({
       key: "channels",

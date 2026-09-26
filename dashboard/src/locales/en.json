@@ -195,7 +195,6 @@
     "chat": "Conversation",
     "common": "Common",
     "control": "Control",
-    "assets": "Company Assets",
     "assetsGroup": "Company Assets",
     "experts": "Employees",
     "tasks": "Automation",
@@ -252,19 +251,6 @@
     "records": "Tasks",
     "paneSettings": "Settings",
     "paneRecords": "Tasks"
-  },
-  "assets": {
-    "title": "Company Assets",
-    "subtitle": "Browse and manage shared channels, connectors, skill packages, and knowledge bases.",
-    "empty": "No asset modules available",
-    "descChannels": "Connect Feishu, WeCom, Telegram and other IM channels to your employees.",
-    "descConnectors": "Configure external services and MCP connectors to extend employee tools.",
-    "descSkillPackages": "Reusable skill collections you can mount on employees.",
-    "descKnowledgeBases": "Documents and corpora employees can retrieve and cite.",
-    "countChannels": "{{count}} enabled",
-    "countConnectors": "{{count}} configured",
-    "countSkillPackages": "{{count}} package(s)",
-    "countKnowledgeBases": "{{count}} knowledge base(s)"
   },
   "skillPackages": {
     "title": "Skill Packages",

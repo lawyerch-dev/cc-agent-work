@@ -66,7 +66,6 @@ describe("pathPermissionKeys", () => {
   });
 
   it("gates settings modules", () => {
-    expect(pathPermissionKeys("/assets")).toEqual([...PERM.assetsPage]);
     expect(pathPermissionKeys("/connectors")).toEqual([...PERM.connectors]);
     expect(pathPermissionKeys("/skill-packages")).toEqual([
       ...PERM.skillPackages,
@@ -123,23 +122,5 @@ describe("unknown dashboard paths", () => {
 
   it("are caught by the not-found route", () => {
     expect(routeConfigs.some((rc) => rc.path === "*")).toBe(true);
-  });
-});
-
-describe("assets hub", () => {
-  it("maps /assets to the assets nav key", () => {
-    expect(resolveSelectedKey("/assets")).toBe("assets");
-  });
-
-  it("opens with any asset module permission", () => {
-    expect(
-      canAccessPath(
-        { role: "user", permissions: ["skill_packages"] },
-        "/assets",
-      ),
-    ).toBe(true);
-    expect(canAccessPath({ role: "user", permissions: [] }, "/assets")).toBe(
-      false,
-    );
   });
 });

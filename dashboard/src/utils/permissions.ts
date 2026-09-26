@@ -15,14 +15,6 @@ export const PERM = {
   knowledgeBases: ["knowledge_bases"],
   knowledgeSettings: ["knowledge_settings"],
   knowledgeBasesPage: ["knowledge_bases", "knowledge_settings"],
-  /** Company assets hub — visible when any asset module is available. */
-  assetsPage: [
-    "channels",
-    "connectors",
-    "skill_packages",
-    "knowledge_bases",
-    "knowledge_settings",
-  ],
   workbench: ["browser", "terminal"],
   browser: ["browser"],
   terminal: ["terminal"],
@@ -38,7 +30,6 @@ export const PERM = {
 
 /** Sidebar item key → permission keys. Shared with path guards. */
 export const NAV_PERMISSIONS = {
-  assets: PERM.assetsPage,
   channels: PERM.channels,
   connectors: PERM.connectors,
   "skill-packages": PERM.skillPackages,
@@ -166,9 +157,6 @@ export function pathPermissionKeys(pathname: string): PermissionKeys | null {
   }
   if (pathname.startsWith("/admin/")) {
     return "admin";
-  }
-  if (pathname === "/assets" || pathname.startsWith("/assets/")) {
-    return PERM.assetsPage;
   }
   if (
     pathname === "/personalization/channels" ||

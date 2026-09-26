@@ -10,7 +10,6 @@ const KnowledgeBasesPage = lazy(() => import("../pages/KnowledgeBases"));
 const PersonalizationPage = lazy(
   () => import("../pages/Agent/Personalization"),
 );
-const AssetsPage = lazy(() => import("../pages/Assets"));
 const ACPPage = lazy(() => import("../pages/Agent/ACP"));
 const TokenUsagePage = lazy(() => import("../pages/Control/TokenUsage"));
 
@@ -63,7 +62,6 @@ export const pathToKey: Record<string, string> = {
   "/personalization/mbti": "personalization",
   "/personalization/memory": "personalization",
   "/skills": "personalization",
-  "/assets": "assets",
   "/token-usage": "token-usage",
   "/agent-config": "agent-config",
   // Control
@@ -152,7 +150,6 @@ export const routeConfigs: RouteConfig[] = [
   // Common
   { path: "/experts", element: <ExpertsPage /> },
   { path: "/tasks", element: <CronJobsPage /> },
-  { path: "/assets", element: <AssetsPage /> },
   { path: "/connectors", element: <ConnectorsPage /> },
   { path: "/skill-packages", element: <SkillPackagesPage /> },
   { path: "/knowledge-bases", element: <KnowledgeBasesPage /> },

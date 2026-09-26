@@ -195,7 +195,6 @@
     "chat": "对话",
     "common": "常用",
     "control": "控制",
-    "assets": "公司资产",
     "assetsGroup": "公司资产",
     "experts": "员工",
     "tasks": "自动化",
@@ -252,19 +251,6 @@
     "records": "任务",
     "paneSettings": "设置",
     "paneRecords": "任务"
-  },
-  "assets": {
-    "title": "公司资产",
-    "subtitle": "统一查看和管理公司共享的通道、连接器、技能包与知识库。",
-    "empty": "暂无可用的资产模块",
-    "descChannels": "对接飞书、企微、Telegram 等消息通道，把员工接入 IM。",
-    "descConnectors": "配置外部服务与 MCP 连接器，扩展员工可用的工具。",
-    "descSkillPackages": "可复用的技能集合，挂载到员工后即可使用。",
-    "descKnowledgeBases": "文档与语料库，供员工检索引用。",
-    "countChannels": "已启用 {{count}} 个",
-    "countConnectors": "已配置 {{count}} 个",
-    "countSkillPackages": "{{count}} 个技能包",
-    "countKnowledgeBases": "{{count}} 个知识库"
   },
   "skillPackages": {
     "title": "技能包",
